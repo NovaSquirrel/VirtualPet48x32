@@ -37,56 +37,17 @@ int main(int argc, char *argv[]) {
 	// ------------------------------------------------------
 
 	//GameSheet = LoadTexture("data/puzzle.png", 0);
-	//VpetBackground = LoadTexture("data/meadow.jpg", 0);
+	VpetBackground = LoadTexture("data/background.png", 0);
 
 	init_game();
 
 	vpet_clear_screen();
-	/*
-	vpet_set_pixel(0, 0, 1);
-	vpet_set_pixel(1, 1, 1);
-	vpet_set_pixel(2, 2, 1);
-	vpet_set_pixel(3, 3, 1);
-	vpet_set_pixel(3, 4, 1);
-	vpet_set_pixel(3, 5, 1);
-	vpet_set_pixel(3, 6, 1);
-	vpet_set_pixel(3, 7, 1);
-	*/
 
-	unsigned char test[8] = {
-		0b00111100,
-		0b01000010,
-		0b10100101,
-		0b10000001,
-		0b10100101,
-		0b10011001,
-		0b01000010,
-		0b00111100
-	};
+	vpet_draw_pet(0, 10, 0,  CHARACTER_MIMI,    CF_HAPPY);
+	vpet_draw_pet(16, 10, 0, CHARACTER_PYONKO,  CF_HAPPY);
+	vpet_draw_pet(32, 10, 0, CHARACTER_TERRIER, CF_HAPPY);
 
-	uint16_t pyon[] = {
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0011000000011000,
-		0b0010100000101000,
-		0b0010011111001000,
-		0b0010100001101000,
-		0b0001010010111000,
-		0b0010010010010000,
-		0b0010000000010000,
-		0b0010011000010000,
-		0b0001000000010000,
-		0b0001010100011000,
-		0b0000101000101000,
-		0b0000100000110000,
-		0b0000010101000000,
-		0b0000001010000000,
-	};
-	vpet_sprite_16(15, 10, 0, 16, pyon, vpet_xor_8_pixels);
-	vpet_sprite_8(18, 24, 0, 8, test, vpet_xor_8_pixels);
-
-	vpet_draw_textf(2, 2, "Hello World");
-	vpet_draw_textf(24, 10, "Mario");
+	vpet_draw_textf(17, 2, "Cute");
 
 	SDL_Event e;
 
@@ -96,18 +57,9 @@ int main(int argc, char *argv[]) {
 				quit = 1;
 		}
 
-		//SDL_SetRenderDrawColor(ScreenRenderer, 64, 64, 64, 255);
-		//SDL_RenderClear(ScreenRenderer);
-
-//		SDL_SetRenderDrawColor(ScreenRenderer, 0, 0, 0, 255);
-//		rectfill(ScreenRenderer, 6*16, 0, 2, 144);
-//		SDL_SetRenderDrawColor(ScreenRenderer, 205, 228, 255, 255);
-//		rectfill(ScreenRenderer, 0, 0, 6*16, 144);
-
-		SDL_SetRenderDrawColor(ScreenRenderer, 255, 255, 255, 255);
-		SDL_RenderClear(ScreenRenderer);
-
-//		SDL_RenderCopy(ScreenRenderer, VpetBackground, NULL, NULL);
+//		SDL_SetRenderDrawColor(ScreenRenderer, 255, 255, 255, 255);
+//		SDL_RenderClear(ScreenRenderer);
+		SDL_RenderCopy(ScreenRenderer, VpetBackground, NULL, NULL);
 		vpet_render_screen();
 
 		//run_game();

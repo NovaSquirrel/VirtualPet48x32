@@ -32,13 +32,58 @@ void vpet_sprite_overwrite_24(int x, int y, int hflip, int h, const uint32_t row
 void vpet_sprite_mask_8(int x, int y, int hflip, int h, const uint8_t rows[], const uint8_t mask_rows[]);
 void vpet_sprite_mask_16(int x, int y, int hflip, int h, const uint16_t rows[], const uint16_t mask_rows[]);
 void vpet_sprite_mask_24(int x, int y, int hflip, int h, const uint32_t rows[], const uint32_t mask_rows[]);
-#define vpet_sprite_xor_8(x, y, h, hflip, rows) vpet_sprite_8(x, y, h, hflip, rows, vpet_xor_8_pixels)
-#define vpet_sprite_xor_16(x, y, h, hflip, rows) vpet_sprite_8(x, y, h, hflip, rows, vpet_xor_16_pixels)
-#define vpet_sprite_xor_24(x, y, h, hflip, rows) vpet_sprite_8(x, y, h, hflip, rows, vpet_xor_24_pixels)
+#define vpet_sprite_xor_8(x, y, hflip, h, rows) vpet_sprite_8(x, y, hflip, h, rows, vpet_xor_8_pixels)
+#define vpet_sprite_xor_16(x, y, hflip, h, rows) vpet_sprite_16(x, y, hflip, h, rows, vpet_xor_8_pixels)
+#define vpet_sprite_xor_24(x, y, hflip, h, rows) vpet_sprite_24(x, y, hflip, h, rows, vpet_xor_8_pixels)
 extern const uint8_t font_4x6[];
 void vpet_set_font(const uint8_t font[], int width, int height);
 void vpet_draw_textf(int x, int y, const char *fmt, ...);
 void vpet_draw_text(int x, int y, const char *buffer);
+
+enum character_frame {
+	CF_IDLE,
+	CF_IDLE2,
+	CF_HAPPY,
+	CF_JUMP,
+	CF_BACK_TURN,
+	CF_SAD,
+	CF_SAD2,
+	CF_ANGRY,
+	CF_ANGRY2,
+	CF_EYES_CLOSED,
+	CF_SLEEP,
+	CF_SLEEP2,
+	CF_EATING,
+	CF_EATING1,
+	CF_NO_THANKS,
+	CF_SITTING,
+	CF_SITTING2,
+	CF_RUNNING,
+	CF_RUNNING2,
+	CF_FACEPLANT,
+	CF_SURPRISED,
+	CF_SURPRISED_GOOD,
+	CF_SURPRISED_BAD,
+	CF_DIZZY,
+	CF_NAUGHTY,
+	CF_BEGGING,
+	CF_KISS,
+	CF_FISHING,
+	CF_BACKPACK_SIDE,
+	CF_BACKPACK_BACK,
+	CF_ATTACK,
+};
+
+enum character_id {
+	CHARACTER_MIMI,
+	CHARACTER_PYONKO,
+	CHARACTER_TERRIER,
+};
+
+void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame);
+void vpet_draw_pet_crop(int x, int y, int hflip, enum character_id character, enum character_frame, int rows);
+
+// ------------------------------------------------------------
 
 enum entity_state {
 	STATE_NORMAL,
@@ -64,6 +109,7 @@ struct entity {
 #define ENTITY_LEN 64
 extern struct entity entities[ENTITY_LEN];
 
+// ------------------------------------------------------------
 
 extern int ScreenWidth, ScreenHeight, ScreenZoom;
 extern SDL_Window *window;

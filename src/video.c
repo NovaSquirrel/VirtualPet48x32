@@ -28,14 +28,15 @@ void vpet_render_screen() {
 					SDL_Rect Temp = {((x*8+(7-i))*ScreenZoom)+1, y*ScreenZoom+1, ScreenZoom-1, ScreenZoom-1};
 					SDL_RenderFillRect(ScreenRenderer, &Temp);
 				} else {
-//					SDL_SetRenderDrawBlendMode(ScreenRenderer, SDL_BLENDMODE_MOD);
+//					continue;
+					SDL_SetRenderDrawBlendMode(ScreenRenderer, SDL_BLENDMODE_MOD);
 
-					SDL_SetRenderDrawColor(ScreenRenderer, 0xf0, 0xf0, 0xf0, 255);
-//					SDL_SetRenderDrawColor(ScreenRenderer, 0xc0, 0xc0, 0xc0, 255);
+					SDL_SetRenderDrawColor(ScreenRenderer, 0xf0, 0xf0, 0xf0, 255); // <-- with background
+//					SDL_SetRenderDrawColor(ScreenRenderer, 0xc0, 0xc0, 0xc0, 255); // <-- no background
 					SDL_Rect Temp = {((x*8+(7-i))*ScreenZoom)+1, y*ScreenZoom+1, ScreenZoom-1, ScreenZoom-1};
 					SDL_RenderFillRect(ScreenRenderer, &Temp);
 
-//					SDL_SetRenderDrawBlendMode(ScreenRenderer, SDL_BLENDMODE_NONE);
+					SDL_SetRenderDrawBlendMode(ScreenRenderer, SDL_BLENDMODE_NONE);
 				}
 				//rectfill(ScreenRenderer, x*8+(7-i), y, 1, 1);
 			}
@@ -97,7 +98,7 @@ void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*
 }
 
 void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void (*operation)(int, int, uint8_t)) {
-	int shift = (16-(x & 7));
+	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
 		unsigned int pixels = rows[r] << shift;
@@ -111,7 +112,7 @@ void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void 
 }
 
 void vpet_sprite_24(int x, int y, int h, int hflip, const uint32_t rows[], void (*operation)(int, int, uint8_t)) {
-	int shift = (24-(x & 7));
+	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
 		unsigned int pixels = rows[r] << shift;
@@ -269,3 +270,21 @@ void vpet_draw_textf(int x, int y, const char *fmt, ...) {
 	vpet_draw_text(x, y, buffer);
 	va_end(argp);
 }
+
+// ----------------------------------------------
+
+extern const uint16_t mimi_art[];
+extern const uint16_t pyonko_art[];
+extern const uint16_t terrier_art[];
+
+const uint16_t *character_spritesheets[] = {
+	mimi_art, pyonko_art, terrier_art
+};
+
+void vpet_draw_pet_crop(int x, int y, int hflip, enum character_id character, enum character_frame frame, int rows) {
+	vpet_sprite_xor_16(x, y, hflip, rows, character_spritesheets[character] + frame*16);
+}
+
+void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame) {
+	vpet_draw_pet_crop(x, y, hflip, character, frame, 16);
+} 

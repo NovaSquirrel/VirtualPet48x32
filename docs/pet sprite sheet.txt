@@ -1,0 +1,31 @@
+General frame 1
+General frame 2
+Happy
+Jump
+Back turned
+Sad
+Sad (eyes closed)
+Angry
+Angry (eyes closed)
+Eyes closed
+Sleep 1
+Sleep 2
+Eating 1
+Eating 2 (also used as a mouth open sprite, for like when you get money, or when you give someone a present?)
+"No"
+Sitting 1
+Sitting 2
+Running 1
+Running 2
+Falling on face
+Surprised
+Surprised (happy)
+Surprised (unhappy)
+Dizzy
+Smirking
+Begging
+Kissing
+Fishing
+Backpack Side
+Backpack Back
+Attack
