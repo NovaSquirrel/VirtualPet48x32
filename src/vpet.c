@@ -1,15 +1,26 @@
 #include "vpet.h"
+#define FRAME_LENGTH (16.0+2.0/3.0)
+
 int ScreenWidth, ScreenHeight, ScreenZoom = 6;
 
 SDL_Window *window = NULL;
 SDL_Renderer *ScreenRenderer = NULL;
-int quit = 0;
-int retraces = 0;
-SDL_Texture *GameSheet = NULL;
 SDL_Texture *VpetBackground = NULL;
+int quit = 0;
+int framecounter = 0;
 
-void run_game();
-void init_game();
+// Keys
+const Uint8 *keyboard;
+uint16_t KeyDown = 0, KeyNew = 0, KeyLast = 0, KeyNewOrRepeat;
+int KeyRepeat = 0;
+
+void init_game() {
+	keyboard = SDL_GetKeyboardState(NULL);
+	RandomSeed();
+
+	void vpet_init();
+	vpet_init();
+}
 
 int main(int argc, char *argv[]) {
 	if(SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -33,41 +44,72 @@ int main(int argc, char *argv[]) {
 		SDL_MessageBox(SDL_MESSAGEBOX_ERROR, "Error", NULL, "SDL_ttf could not initialize! SDL_ttf Error: %s", TTF_GetError());
 		return -1;
 	}
-	ScreenRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	ScreenRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	// ------------------------------------------------------
 
-	//GameSheet = LoadTexture("data/puzzle.png", 0);
 	VpetBackground = LoadTexture("data/background.png", 0);
 
 	init_game();
 
-	vpet_clear_screen();
-
-	vpet_draw_pet(0, 10, 0,  CHARACTER_MIMI,    CF_HAPPY);
-	vpet_draw_pet(16, 10, 0, CHARACTER_PYONKO,  CF_HAPPY);
-	vpet_draw_pet(32, 10, 0, CHARACTER_TERRIER, CF_HAPPY);
-
-	vpet_draw_textf(17, 2, "Cute");
+	// Run the SDL event loop
+	unsigned int last_time = SDL_GetTicks();
+	double frametimer = 0; 
 
 	SDL_Event e;
-
 	while(!quit) {
 		while(SDL_PollEvent(&e) != 0) {
 			if(e.type == SDL_QUIT)
 				quit = 1;
 		}
 
-//		SDL_SetRenderDrawColor(ScreenRenderer, 255, 255, 255, 255);
-//		SDL_RenderClear(ScreenRenderer);
 		SDL_RenderCopy(ScreenRenderer, VpetBackground, NULL, NULL);
 		vpet_render_screen();
+		if(SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
+			SDL_Delay(16);
+		} else {
+			SDL_RenderPresent(ScreenRenderer);
+		}
 
-		//run_game();
-		SDL_RenderPresent(ScreenRenderer);
+		unsigned int this_time = SDL_GetTicks();
+		frametimer += this_time - last_time;
+		last_time = this_time;
+		while(frametimer >= FRAME_LENGTH) {
+			frametimer -= FRAME_LENGTH;
 
-		SDL_Delay(17);
-		retraces++;
+			// Update keys
+			KeyLast = KeyDown;
+			KeyDown =   (keyboard[SDL_SCANCODE_LEFT]  << 0) |
+						(keyboard[SDL_SCANCODE_RIGHT] << 1) |
+						(keyboard[SDL_SCANCODE_UP]    << 2) |
+						(keyboard[SDL_SCANCODE_DOWN]  << 3) |
+						(keyboard[SDL_SCANCODE_X]     << 4) |
+						(keyboard[SDL_SCANCODE_Z]     << 5) |
+						(keyboard[SDL_SCANCODE_C]     << 6);
+			KeyNew = KeyDown & (~KeyLast);
+			KeyNewOrRepeat = KeyNew;
+
+			if(KeyNew & KEY_RESET)
+				init_game();
+
+			if((KeyDown&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ==
+			   (KeyLast&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ) {
+				KeyRepeat++;
+				if(KeyRepeat > 15) {
+					KeyRepeat = 12;
+					KeyNewOrRepeat |= KeyDown & (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN);
+				}
+			} else {
+				KeyRepeat = 0;
+			}
+
+			// Update vpet
+			void vpet_run();
+			vpet_run();
+
+			framecounter++;
+		}
 	}
+	IMG_Quit();
 	SDL_Quit();
 
 	return 0;

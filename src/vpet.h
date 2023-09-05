@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #endif
 
+// ------------------------------------------------------------
+
 #define PET_SCREEN_W 48
 #define PET_SCREEN_H 32
 void vpet_clear_screen();
@@ -85,6 +87,85 @@ void vpet_draw_pet_crop(int x, int y, int hflip, enum character_id character, en
 
 // ------------------------------------------------------------
 
+#define MAX_NAME_SIZE 12
+
+enum gender_id {
+	GENDER_NONE,
+	GENDER_OTHER,
+	GENDER_GIRL,
+	GENDER_BOY,
+	GENDER_NONBINARY,
+};
+
+enum personality_id {
+	PERSONALITY_KIND,
+	PERSONALITY_ENERGETIC,
+	PERSONALITY_LAID_BACK,
+	PERSONALITY_COOL,
+	PERSONALITY_SILLY,
+	PERSONALITY_STUBBORN,
+	PERSONALITY_CAUTIOUS,
+};
+
+#define MAX_STAT 0x80000000
+// ^ Normal maximum for each stat, but can go above as a bonus
+
+enum pet_stat_id {
+	// Care
+	STAT_BELLY,
+	STAT_HAPPY,
+	STAT_CLEAN,
+
+	// Training
+	STAT_COOL,
+	STAT_BEAUTIFUL,
+	STAT_CUTE,
+	STAT_CLEVER,
+	STAT_TOUGH,
+
+	// Timers until an action
+	STAT_POOP,
+	STAT_ATTENTION,
+	STAT_COMMON_EVENT,
+	STAT_UNCOMMON_EVENT,
+
+	STAT_COUNT,
+};
+
+struct vpet_profile {
+	enum character_id   species;
+	enum gender_id      gender;
+	enum personality_id personality;
+	uint32_t            random[4];
+	time_t              created_at;
+	char                name[MAX_NAME_SIZE+1]; // null terminated
+};
+
+struct vpet_status {
+	struct vpet_profile profile;
+	uint32_t stats[STAT_COUNT];
+	uint32_t stat_drop_rate[STAT_COUNT];
+	unsigned int seconds;         // Number of seconds the vpet has been active
+};
+
+extern struct vpet_status my_pet;
+
+void vpet_tick();
+
+// ------------------------------------------------------------
+
+enum KeyCode {
+  KEY_LEFT  = 0x0001,
+  KEY_RIGHT = 0x0002,
+  KEY_UP    = 0x0004,
+  KEY_DOWN  = 0x0008,
+  KEY_A     = 0x0010,
+  KEY_B     = 0x0020,
+  KEY_RESET = 0x0040,
+};
+
+// ------------------------------------------------------------
+
 enum entity_state {
 	STATE_NORMAL,
 	STATE_PAUSE,
@@ -114,8 +195,7 @@ extern struct entity entities[ENTITY_LEN];
 extern int ScreenWidth, ScreenHeight, ScreenZoom;
 extern SDL_Window *window;
 extern SDL_Renderer *ScreenRenderer;
-extern int retraces;
-extern SDL_Texture *GameSheet;
+extern int framecounter;
 
 void SDL_MessageBox(int Type, const char *Title, SDL_Window *Window, const char *fmt, ...);
 void strlcpy(char *Destination, const char *Source, int MaxLength);

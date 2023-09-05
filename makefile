@@ -1,4 +1,4 @@
-objlist := vpet utility game random video sprites
+objlist := vpet utility random pet_video pet_sprites pet_logic pet_animation pet_main pet_minigame
 program_title = vpet
  
 CC := gcc
