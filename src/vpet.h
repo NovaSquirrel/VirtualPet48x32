@@ -98,6 +98,7 @@ enum gender_id {
 };
 
 enum personality_id {
+	PERSONALITY_DEFAULT,
 	PERSONALITY_KIND,
 	PERSONALITY_ENERGETIC,
 	PERSONALITY_LAID_BACK,
@@ -145,12 +146,23 @@ struct vpet_status {
 	struct vpet_profile profile;
 	uint32_t stats[STAT_COUNT];
 	uint32_t stat_drop_rate[STAT_COUNT];
-	unsigned int seconds;         // Number of seconds the vpet has been active
+
+    // Number of seconds the vpet has been active
+	unsigned int seconds;
 };
 
 extern struct vpet_status my_pet;
 
 void vpet_tick();
+
+// ------------------------------------------------------------
+
+enum game_state {
+	STATE_DEFAULT,
+	STATE_ACTION_MENU,
+	STATE_STATUS,
+};
+extern enum game_state vpet_state;
 
 // ------------------------------------------------------------
 
@@ -163,6 +175,7 @@ enum KeyCode {
   KEY_B     = 0x0020,
   KEY_RESET = 0x0040,
 };
+extern uint16_t KeyDown, KeyNew, KeyLast, KeyNewOrRepeat;
 
 // ------------------------------------------------------------
 
