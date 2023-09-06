@@ -24,6 +24,7 @@ struct vpet_status my_pet;
 int my_currency = 12345;
 int second_ticks = 0; // Ticks up to 59 and then back to zero
 enum game_state vpet_state = STATE_DEFAULT;
+int pet_paused = 0;
 
 // Menu options and stuff?
 int menu_cursor = 0;
@@ -50,8 +51,8 @@ void vpet_init() {
 	strcpy(my_pet.profile.name, "Pyonkotchi");
 
 	my_pet.stats[STAT_BELLY] = MAX_STAT;
-	my_pet.stats[STAT_HAPPY] = MAX_STAT;
-	my_pet.stats[STAT_CLEAN] = MAX_STAT;
+	my_pet.stats[STAT_HAPPY] = MAX_STAT/2;
+	my_pet.stats[STAT_CLEAN] = MAX_STAT/3;
 
 	my_pet.stats[STAT_POOP]           = MAX_STAT;
 	my_pet.stats[STAT_ATTENTION]      = MAX_STAT;
@@ -60,6 +61,27 @@ void vpet_init() {
 
 	void vpet_switch_state(enum game_state new_state);
 	vpet_switch_state(STATE_DEFAULT);
+}
+
+void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value) {
+	vpet_rect(x, y, w, h);
+	vpet_rectfill(x+1, y+1, value/(max_value/(w-2)), h-2);
+}
+
+
+void vpet_draw_header(const char *text) {
+	int x = 4;
+	int y = 1;
+	for(const char *c = text; *c; c++) {
+		if(*c == 'j' || *c == 'p' || *c == 'q' || *c == 'y') { // Detect descenders
+			y = 0;
+			break;
+		}
+	}
+	if(strlen(text) >= 12)
+		x = 1;
+	vpet_draw_text(x, y, text);
+	vpet_hline(2, 6, PET_SCREEN_W-4);
 }
 
 // Redraw the screen, like in response to changing between states
@@ -74,8 +96,7 @@ void vpet_refresh_screen() {
 			break;
 
 		case STATE_MAIN_MENU:
-			vpet_draw_text(4, 1, "Main Menu");
-			vpet_hline(2, 6, PET_SCREEN_W-4);
+			vpet_draw_header("Main Menu");
 			if(menu_cursor < 4) {
 				vpet_draw_text(4, 6*1+2, "Status");
 				vpet_draw_text(4, 6*2+2, "Feed");
@@ -93,49 +114,107 @@ void vpet_refresh_screen() {
 		case STATE_STATUS:
 			switch(menu_cursor) {
 				case 0:
-					vpet_draw_text(1,  6*0, my_pet.profile.name);
-					vpet_hline(1, 6, PET_SCREEN_W-2);
-					vpet_draw_text(2,  6*1+1, "Belly:99999");
-					vpet_draw_text(2,  6*2+1, "Happy:99999");
-					vpet_draw_text(2,  6*3+1, "Clean:99999");
-					vpet_draw_text(2,  6*4+1, "Heavy:99999");
+					vpet_draw_header(my_pet.profile.name);
+					vpet_draw_text(1,  6*1+2, "Belly:");
+					vpet_draw_meter(2+4*6-1, 6*1+2, 4*5+2, 5, my_pet.stats[STAT_BELLY], MAX_STAT);
+					vpet_draw_text(1,  6*2+2, "Happy:");
+					vpet_draw_meter(2+4*6-1, 6*2+2, 4*5+2, 5, my_pet.stats[STAT_HAPPY], MAX_STAT);
+					vpet_draw_text(1,  6*3+2, "Clean:");
+					vpet_draw_meter(2+4*6-1, 6*3+2, 4*5+2, 5, my_pet.stats[STAT_CLEAN], MAX_STAT);
+					vpet_draw_text(1,  6*4+2, "Heavy:");
+					vpet_draw_meter(2+4*6-1, 6*4+2, 4*5+2, 5, my_pet.stats[STAT_HEAVY], MAX_STAT);
 					break;
 				case 1:
-					vpet_draw_text(1,  6*0, my_pet.profile.name);
-					vpet_hline(1, 6, PET_SCREEN_W-2);
-					vpet_draw_text(2,   6*1+1, "Money:");
-					vpet_draw_textf(4,  6*2+1, "%d", my_currency);
-					vpet_draw_text(2,   6*3+1, "Gratitude:");
-					vpet_draw_textf(4,  6*4+1, "%d", my_pet.gratitude);
+					vpet_draw_header(my_pet.profile.name);
+					vpet_draw_text(1,   6*1+2, "Money:");
+					vpet_draw_textf(4,  6*2+2, "%d", my_currency);
+					vpet_draw_text(1,   6*3+2, "Gratitude:");
+					vpet_draw_textf(4,  6*4+2, "%d", my_pet.gratitude);
 					break;
 				case 2:
-					vpet_draw_text(2, 6*0+1,  " Cool:99999");
-					vpet_draw_text(2, 6*1+1,  "Style:99999");
-					vpet_draw_text(2, 6*2+1,  " Cute:99999");
-					vpet_draw_text(2, 6*3+1,  "Smart:99999");
-					vpet_draw_text(2, 6*4+1,  "Tough:99999");
+					vpet_draw_textf(1, 6*0+2,  " Cool:%d", my_pet.stats[STAT_COOL]);
+					vpet_draw_textf(1, 6*1+2,  "Style:%d", my_pet.stats[STAT_BEAUTIFUL]);
+					vpet_draw_textf(1, 6*2+2,  " Cute:%d", my_pet.stats[STAT_CUTE]);
+					vpet_draw_textf(1, 6*3+2,  "Smart:%d", my_pet.stats[STAT_CLEVER]);
+					vpet_draw_textf(1, 6*4+2,  "Tough:%d", my_pet.stats[STAT_TOUGH]);
 					break;
 				case 3:
-					vpet_draw_text(1,  6*0, my_pet.profile.name);
-					vpet_hline(1, 6, PET_SCREEN_W-2);
-					vpet_draw_text(2,  6*1+1, "Personality:");
-					vpet_draw_text(4,  6*2+1, personality_names[my_pet.profile.personality]);
-					vpet_draw_text(2,  6*3+1, "Gender:");
-					vpet_draw_text(4,  6*4+1, gender_names[my_pet.profile.gender]);
+					vpet_draw_header(my_pet.profile.name);
+					vpet_draw_text(1,  6*1+2, "Personality:");
+					vpet_draw_text(4,  6*2+2, personality_names[my_pet.profile.personality]);
+					vpet_draw_text(1,  6*3+2, "Gender:");
+					vpet_draw_text(4,  6*4+2, gender_names[my_pet.profile.gender]);
 					break;
 				case 4:
 					time_info = localtime(&my_pet.profile.created_at);
 					strftime(line_buffer, sizeof(line_buffer), "%Y-%m-%d", time_info);
 
-					vpet_draw_text(1,  6*0, my_pet.profile.name);
-					vpet_hline(1, 6, PET_SCREEN_W-2);
-					vpet_draw_text(2,  6*1+1, "Met on:");
-					vpet_draw_text(4,  6*2+1, line_buffer);
-					vpet_draw_text(2,  6*3+1, "Days active:");
-					vpet_draw_textf(4,  6*4+1, "%d", my_pet.seconds / 86400);
+					vpet_draw_header(my_pet.profile.name);
+					vpet_draw_text(1,  6*1+2, "Met on:");
+					vpet_draw_text(4,  6*2+2, line_buffer);
+					vpet_draw_text(1,  6*3+2, "Days active:");
+					vpet_draw_textf(4, 6*4+2, "%d", my_pet.seconds / 86400);
 			}
 			break;
+
+		case STATE_FEED_MENU:
+			vpet_draw_header("Feed");
+			vpet_draw_text(4, 6*1+2, "Meal");
+			vpet_draw_text(4, 6*2+2, "Snack");
+			vpet_draw_text(4, 6*3+2, "?");
+			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+		case STATE_PLAY_MENU:
+			vpet_draw_header("Play!");
+			vpet_draw_text(4, 6*1+2, "Game");
+			vpet_draw_text(4, 6*2+2, "Item");
+			vpet_draw_text(4, 6*3+2, "Petting");
+			vpet_draw_text(4, 6*4+2, "Explore");
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+		case STATE_CLEAN_MENU:
+			vpet_draw_header("Clean");
+			vpet_draw_text(4, 6*1+2, "Brushing");
+			vpet_draw_text(4, 6*2+2, "Bath");
+			vpet_draw_text(4, 6*3+2, "?");
+			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+		case STATE_TRAVEL_MENU:
+			vpet_draw_header("Travel");
+			if(menu_cursor < 4) {
+				vpet_draw_text(4, 6*1+2, "Home");
+				vpet_draw_text(4, 6*2+2, "Shop");
+				vpet_draw_text(4, 6*3+2, "Library");
+				vpet_draw_text(4, 6*4+2, "Park");
+			} else {
+				vpet_draw_text(4, 6*1+2, "Forest");
+				vpet_draw_text(4, 6*2+2, "Beach");
+				vpet_draw_text(4, 6*3+2, "Lake");
+				vpet_draw_text(4, 6*4+2, "Mountains");
+			}
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+		case STATE_RECORDS_MENU:
+			vpet_draw_header("Records");
+			vpet_draw_text(4, 6*1+2, "Items");
+			vpet_draw_text(4, 6*2+2, "Pets");
+			vpet_draw_text(4, 6*3+2, "?");
+			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+		case STATE_OPTIONS_MENU:
+			vpet_draw_header("Options");
+			vpet_draw_text(4, 6*1+2, "Device");
+			vpet_draw_text(4, 6*2+2, "Sound");
+			vpet_draw_text(4, 6*3+2, "About");
+			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			break;
+
 		case STATE_PAUSED:
+			pet_paused = 1;
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*6, 2, "Paused");
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*9, 2+6, "Press A+B");
 			vpet_draw_pet(PET_SCREEN_CENTER_X-16/2, 14, 0,  my_pet.profile.species, CF_IDLE);
@@ -150,6 +229,11 @@ void vpet_switch_state(enum game_state new_state) {
 	menu_page = 0;
 	vpet_state = new_state;
 	second_ticks = 0;
+
+	if(new_state == STATE_DEFAULT) {
+		void reset_idle_animation();
+		reset_idle_animation();
+	}
 	vpet_refresh_screen();
 }
 
@@ -189,14 +273,48 @@ void vpet_tick_button_press() {
 				vpet_refresh_screen();
 			break;
 		case STATE_PAUSED:
-			if( (key_down & (KEY_A | KEY_B)) == (KEY_A | KEY_B) )
+			if( (key_down & (KEY_A | KEY_B)) == (KEY_A | KEY_B) ) {
 				vpet_switch_state(STATE_DEFAULT);
+				pet_paused = 0;
+			}
 			break;
 		case STATE_STATUS:
 			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT, KEY_RIGHT|KEY_A, 0, STATE_DEFAULT);
 			if(key_new)
 				vpet_refresh_screen();
 			break;
+
+		case STATE_FEED_MENU:
+			move_through_menu(4, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+		case STATE_PLAY_MENU:
+			move_through_menu(4, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+		case STATE_CLEAN_MENU:
+			move_through_menu(4, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+		case STATE_TRAVEL_MENU:
+			move_through_menu(8, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+		case STATE_RECORDS_MENU:
+			move_through_menu(4, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+		case STATE_OPTIONS_MENU:
+			move_through_menu(4, STATE_DEFAULT);
+			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+				vpet_refresh_screen();
+			break;
+
 		default:
 			break;
 	}
@@ -213,7 +331,7 @@ void vpet_tick_60fps() {
 // Simulates the interrupt system a device would have
 void vpet_run() {
 	void vpet_tick_second();
-	void vpet_tick_half_second();
+	void vpet_tick_animation();
 
 	// Tick from button presses
 	if(key_new_or_repeat) {
@@ -226,9 +344,11 @@ void vpet_run() {
 	// Tick very half second or full second
 	second_ticks++;
 	if(second_ticks == 30 || second_ticks == 60)
-		vpet_tick_half_second();
+		vpet_tick_animation();
 	if(second_ticks >= 60) {
 		second_ticks = 0;
-		vpet_tick_second();
+		if(!pet_paused) {
+			vpet_tick_second();
+		}
 	}
 }

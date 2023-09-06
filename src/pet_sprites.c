@@ -19,3 +19,18 @@ const uint8_t smiley[8] = {
 		0b01000010,
 		0b00111100
 };
+
+// ----------------------------------------------------------------------------
+#include "vpet.h"
+
+const uint16_t *character_spritesheets[] = {
+	mimi_art, pyonko_art, terrier_art
+};
+
+void vpet_draw_pet_crop(int x, int y, int hflip, enum character_id character, enum character_frame frame, int rows) {
+	vpet_sprite_xor_16(x, y, hflip, rows, character_spritesheets[character] + frame*16);
+}
+
+void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame) {
+	vpet_draw_pet_crop(x, y, hflip, character, frame, 16);
+} 

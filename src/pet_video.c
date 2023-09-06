@@ -71,6 +71,24 @@ void vpet_rectfill(int x, int y, int width, int height) {
 	vpet_rectfill_operation(x, y, width, height, vpet_xor_8_pixels);
 }
 
+void vpet_rect(int x, int y, int width, int height) {
+	if(width == 0 || height == 0)
+		return;
+	if(width == 1) {
+		vpet_vline(x, y, height);
+		return;
+	}
+	if(height == 1) {
+		vpet_hline(x, y, width);
+		return;
+	}
+
+	vpet_rectfill(x,         y,          width, 1);
+	vpet_rectfill(x,         y+1,        1,     height-2);
+	vpet_rectfill(x+width-1, y+1,        1,     height-2);
+	vpet_rectfill(x,         y+height-1, width, 1);
+}
+
 void vpet_hline(int x, int y, int width) {
 	vpet_rectfill(x, y, width, 1);
 }
@@ -155,9 +173,7 @@ void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*
 	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse8(pixels);
+		unsigned int pixels = (hflip ? reverse8(rows[r]) : rows[r]) << shift;
 		operation(x,   y, (pixels >> 8) & 0xff);
 		operation(x+1, y, (pixels     ) & 0xff);
 		y++;
@@ -168,9 +184,7 @@ void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void 
 	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse16(pixels);
+		unsigned int pixels = (hflip ? reverse16(rows[r]) : rows[r]) << shift;
 		operation(x,   y, (pixels >> 16) & 0xff);
 		operation(x+1, y, (pixels >> 8 ) & 0xff);
 		operation(x+2, y, (pixels      ) & 0xff);
@@ -182,9 +196,7 @@ void vpet_sprite_24(int x, int y, int h, int hflip, const uint32_t rows[], void 
 	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse24(pixels);
+		unsigned int pixels = (hflip ? reverse24(rows[r]) : rows[r]) << shift;
 		operation(x,   y, (pixels >> 24) & 0xff);
 		operation(x+1, y, (pixels >> 16) & 0xff);
 		operation(x+2, y, (pixels >> 8 ) & 0xff);
@@ -337,21 +349,3 @@ void vpet_draw_textf(int x, int y, const char *fmt, ...) {
 	vpet_draw_text(x, y, buffer);
 	va_end(argp);
 }
-
-// ----------------------------------------------
-
-extern const uint16_t mimi_art[];
-extern const uint16_t pyonko_art[];
-extern const uint16_t terrier_art[];
-
-const uint16_t *character_spritesheets[] = {
-	mimi_art, pyonko_art, terrier_art
-};
-
-void vpet_draw_pet_crop(int x, int y, int hflip, enum character_id character, enum character_frame frame, int rows) {
-	vpet_sprite_xor_16(x, y, hflip, rows, character_spritesheets[character] + frame*16);
-}
-
-void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame) {
-	vpet_draw_pet_crop(x, y, hflip, character, frame, 16);
-} 

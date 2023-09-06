@@ -16,10 +16,21 @@
 
 // ------------------------------------------------------------
 
+// Pet configuration
 #define PET_SCREEN_W 48
 #define PET_SCREEN_H 32
 #define PET_SCREEN_CENTER_X 24
 #define PET_SCREEN_CENTER_Y 16
+
+// Full animation
+#define PET_ANIMATION_FULL
+// Animation for LCD devices
+#define PET_ANIMATION_PLUS
+// Minimal animation
+#define PET_ANIMATION_EPAPER
+
+// ------------------------------------------------------------
+
 void vpet_clear_screen();
 void vpet_set_pixel(int x, int y, int value);
 int  vpet_get_pixel(int x, int y);
@@ -46,6 +57,7 @@ void vpet_draw_textf(int x, int y, const char *fmt, ...);
 void vpet_draw_text(int x, int y, const char *buffer);
 void vpet_hline(int x, int y, int width);
 void vpet_vline(int x, int y, int height);
+void vpet_rect(int x, int y, int width, int height);
 void vpet_rectfill(int x, int y, int width, int height);
 void vpet_rectfill_operation(int x, int y, int width, int height, void (*operation)(int, int, uint8_t));
 
@@ -113,9 +125,11 @@ enum personality_id {
 	PERSONALITY_SILLY,
 	PERSONALITY_STUBBORN,
 	PERSONALITY_CAUTIOUS,
+
+	PERSONALITY_COUNT
 };
 
-#define MAX_STAT 0x80000000
+#define MAX_STAT 0x7fffffff
 // ^ Normal maximum for each stat, but can go above as a bonus
 
 enum pet_stat_id {
@@ -123,7 +137,7 @@ enum pet_stat_id {
 	STAT_BELLY,
 	STAT_HAPPY,
 	STAT_CLEAN,
-	STAT_WEIGHT,
+	STAT_HEAVY,
 
 	// Training
 	STAT_COOL,
@@ -138,7 +152,7 @@ enum pet_stat_id {
 	STAT_COMMON_EVENT,
 	STAT_UNCOMMON_EVENT,
 
-	STAT_COUNT,
+	STAT_COUNT
 };
 
 struct vpet_profile {
