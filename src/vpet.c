@@ -29,8 +29,8 @@ int framecounter = 0;
 
 // Keys
 const Uint8 *keyboard;
-uint16_t KeyDown = 0, KeyNew = 0, KeyLast = 0, KeyNewOrRepeat = 0;
-int KeyRepeat = 0;
+uint16_t key_down = 0, key_new = 0, key_last = 0, key_new_or_repeat = 0;
+int key_repeat = 0;
 
 void init_game() {
 	keyboard = SDL_GetKeyboardState(NULL);
@@ -46,8 +46,8 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	ScreenWidth = 48 * ScreenZoom;
-	ScreenHeight = 32 * ScreenZoom;
+	ScreenWidth = PET_SCREEN_W * ScreenZoom;
+	ScreenHeight = PET_SCREEN_H * ScreenZoom;
 
 	window = SDL_CreateWindow("Virtual pet!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenWidth, ScreenHeight, SDL_WINDOW_SHOWN);
 	if(!window) {
@@ -95,29 +95,29 @@ int main(int argc, char *argv[]) {
 			frametimer -= FRAME_LENGTH;
 
 			// Update keys
-			KeyLast = KeyDown;
-			KeyDown =   (keyboard[SDL_SCANCODE_LEFT]  << 0) |
+			key_last = key_down;
+			key_down =   (keyboard[SDL_SCANCODE_LEFT]  << 0) |
 						(keyboard[SDL_SCANCODE_RIGHT] << 1) |
 						(keyboard[SDL_SCANCODE_UP]    << 2) |
 						(keyboard[SDL_SCANCODE_DOWN]  << 3) |
 						(keyboard[SDL_SCANCODE_X]     << 4) |
 						(keyboard[SDL_SCANCODE_Z]     << 5) |
 						(keyboard[SDL_SCANCODE_M]     << 6);
-			KeyNew = KeyDown & (~KeyLast);
-			KeyNewOrRepeat = KeyNew;
+			key_new = key_down & (~key_last);
+			key_new_or_repeat = key_new;
 
-			if(KeyNew & KEY_RESET)
+			if(key_new & KEY_RESET)
 				init_game();
 
-			if((KeyDown&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ==
-			   (KeyLast&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ) {
-				KeyRepeat++;
-				if(KeyRepeat > 15) {
-					KeyRepeat = 12;
-					KeyNewOrRepeat |= KeyDown & (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN);
+			if((key_down&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ==
+			   (key_last&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ) {
+				key_repeat++;
+				if(key_repeat > 15) {
+					key_repeat = 12;
+					key_new_or_repeat |= key_down & (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN);
 				}
 			} else {
-				KeyRepeat = 0;
+				key_repeat = 0;
 			}
 
 			// Update vpet

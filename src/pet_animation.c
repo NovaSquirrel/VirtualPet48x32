@@ -18,12 +18,17 @@
  */
 #include "vpet.h"
 
+void vpet_draw_pet_animation() {
+	// Assume screen was cleared
+	vpet_draw_pet(PET_SCREEN_CENTER_X-16/2, 10, 0,  my_pet.profile.species, CF_IDLE);
+}
+
 // Runs every half second to update the animations.
 void vpet_tick_half_second() {
 	switch(vpet_state) {
 		case STATE_DEFAULT:
 			vpet_clear_screen();
-			vpet_draw_pet(48/2-16/2, 10, 0,  my_pet.profile.species, CF_IDLE);
+			vpet_draw_pet_animation();
 			break;
 		default:
 			break;

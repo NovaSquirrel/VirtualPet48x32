@@ -36,6 +36,49 @@ int vpet_get_pixel(int x, int y) {
 	return vpet_screen_buffer[x/8][y] & 0x80 >> (x & 7);
 }
 
+void vpet_rectfill_operation(int x, int y, int width, int height, void (*operation)(int, int, uint8_t)) {
+	if(width == 0 || height == 0)
+		return;
+	int buffer_x = x / 8;
+
+	uint8_t horiz_strip_left  = 0xff >> (x & 7);
+	int horiz_middle_parts = 0;
+	uint8_t horiz_strip_right = 0;
+	if(width < (8 - (x&7))) {
+		horiz_strip_left &= 0xff << (8 - (x&7) - width);
+	} else {
+		int pixels_left = width - (8 - (x&7));
+		horiz_middle_parts = pixels_left / 8;
+		horiz_strip_right = 0xff << (8 - (pixels_left & 7)); 
+	}
+
+	while(height) {
+		if(y >= 0 && y < PET_SCREEN_H) {
+			int write_x = buffer_x;
+			operation(write_x++, y, horiz_strip_left);
+			for(int i=0; i<horiz_middle_parts; i++) {
+				operation(write_x++, y, 0xff);
+			}
+			if(horiz_strip_right)
+				operation(write_x, y, horiz_strip_right);
+		}
+		y++;
+		height--;
+	}
+}
+
+void vpet_rectfill(int x, int y, int width, int height) {
+	vpet_rectfill_operation(x, y, width, height, vpet_xor_8_pixels);
+}
+
+void vpet_hline(int x, int y, int width) {
+	vpet_rectfill(x, y, width, 1);
+}
+
+void vpet_vline(int x, int y, int height) {
+	vpet_rectfill(x, y, 1, height);
+}
+
 void vpet_render_screen() {
 	for(int y=0; y<PET_SCREEN_H; y++) {
 		for(int x=0; x<PET_SCREEN_W/8; x++) {
@@ -80,6 +123,12 @@ void vpet_and_8_pixels(int x, int y, uint8_t value) {
 	if(x < 0 || x >= PET_SCREEN_W/8 || y < 0 || y >= PET_SCREEN_H)
 		return;
 	vpet_screen_buffer[x][y] &= value;
+}
+
+void vpet_andnot_8_pixels(int x, int y, uint8_t value) {
+	if(x < 0 || x >= PET_SCREEN_W/8 || y < 0 || y >= PET_SCREEN_H)
+		return;
+	vpet_screen_buffer[x][y] &= ~value;
 }
 
 // ----------------------------------------------

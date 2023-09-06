@@ -18,6 +18,8 @@
 
 #define PET_SCREEN_W 48
 #define PET_SCREEN_H 32
+#define PET_SCREEN_CENTER_X 24
+#define PET_SCREEN_CENTER_Y 16
 void vpet_clear_screen();
 void vpet_set_pixel(int x, int y, int value);
 int  vpet_get_pixel(int x, int y);
@@ -25,6 +27,7 @@ void vpet_render_screen();
 void vpet_or_8_pixels(int x, int y, uint8_t value);
 void vpet_xor_8_pixels(int x, int y, uint8_t value);
 void vpet_and_8_pixels(int x, int y, uint8_t value);
+void vpet_andnot_8_pixels(int x, int y, uint8_t value);
 void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*operation)(int, int, uint8_t));
 void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void (*operation)(int, int, uint8_t));
 void vpet_sprite_24(int x, int y, int hflip, int h, const uint32_t rows[], void (*operation)(int, int, uint8_t));
@@ -41,6 +44,10 @@ extern const uint8_t font_4x6[];
 void vpet_set_font(const uint8_t font[], int width, int height);
 void vpet_draw_textf(int x, int y, const char *fmt, ...);
 void vpet_draw_text(int x, int y, const char *buffer);
+void vpet_hline(int x, int y, int width);
+void vpet_vline(int x, int y, int height);
+void vpet_rectfill(int x, int y, int width, int height);
+void vpet_rectfill_operation(int x, int y, int width, int height, void (*operation)(int, int, uint8_t));
 
 enum character_frame {
 	CF_IDLE,
@@ -116,6 +123,7 @@ enum pet_stat_id {
 	STAT_BELLY,
 	STAT_HAPPY,
 	STAT_CLEAN,
+	STAT_WEIGHT,
 
 	// Training
 	STAT_COOL,
@@ -149,6 +157,9 @@ struct vpet_status {
 
     // Number of seconds the vpet has been active
 	unsigned int seconds;
+
+	// Like gratitude points in DQB2 but you don't spend them?
+	unsigned int gratitude;
 };
 
 extern struct vpet_status my_pet;
@@ -159,10 +170,20 @@ void vpet_tick();
 
 enum game_state {
 	STATE_DEFAULT,
-	STATE_ACTION_MENU,
+	STATE_MAIN_MENU,
 	STATE_STATUS,
+	STATE_FEED_MENU,
+	STATE_PLAY_MENU,
+	STATE_CLEAN_MENU,
+	STATE_TRAVEL_MENU,
+	STATE_RECORDS_MENU,
+	STATE_OPTIONS_MENU,
+	STATE_PAUSED,
 };
 extern enum game_state vpet_state;
+void vpet_refresh_screen();
+void vpet_switch_state(enum game_state new_state);
+void vpet_draw_pet_animation();
 
 // ------------------------------------------------------------
 
@@ -175,7 +196,7 @@ enum KeyCode {
   KEY_B     = 0x0020,
   KEY_RESET = 0x0040,
 };
-extern uint16_t KeyDown, KeyNew, KeyLast, KeyNewOrRepeat;
+extern uint16_t key_down, key_new, key_last, key_new_or_repeat;
 
 // ------------------------------------------------------------
 
