@@ -261,7 +261,8 @@ void move_through_menu(int item_count, enum game_state exit_state) {
 void vpet_tick_button_press() {
 	switch(vpet_state) {
 		case STATE_DEFAULT:
-			vpet_switch_state(STATE_MAIN_MENU);
+			if(key_new & KEY_A)
+				vpet_switch_state(STATE_MAIN_MENU);
 			break;
 		case STATE_MAIN_MENU:
 			move_through_menu(8, STATE_DEFAULT);

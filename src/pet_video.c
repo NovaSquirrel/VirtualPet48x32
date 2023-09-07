@@ -212,9 +212,7 @@ void vpet_sprite_overwrite_8(int x, int y, int hflip, int h, const uint8_t rows[
 	unsigned int mask_pixels = ~(255 << shift);
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse8(pixels);
+		unsigned int pixels = (hflip ? reverse8(rows[r]) : rows[r]) << shift;;
 		vpet_and_8_pixels(x,   y, (mask_pixels >> 8)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 8     )&0xff);
 		vpet_and_8_pixels(x+1, y, (mask_pixels     )&0xff);
@@ -224,13 +222,11 @@ void vpet_sprite_overwrite_8(int x, int y, int hflip, int h, const uint8_t rows[
 }
 
 void vpet_sprite_overwrite_16(int x, int y, int hflip, int h, const uint16_t rows[]) {
-	int shift = (16-(x & 7));
+	int shift = (8-(x & 7));
 	unsigned int mask_pixels = ~(255 << shift);
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse16(pixels);
+		unsigned int pixels = (hflip ? reverse16(rows[r]) : rows[r]) << shift;
 		vpet_and_8_pixels(x,   y, (mask_pixels >> 16)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 16     )&0xff);
 		vpet_and_8_pixels(x+1, y, (mask_pixels >> 8 )&0xff);
@@ -242,13 +238,11 @@ void vpet_sprite_overwrite_16(int x, int y, int hflip, int h, const uint16_t row
 }
 
 void vpet_sprite_overwrite_24(int x, int y, int hflip, int h, const uint32_t rows[]) {
-	int shift = (24-(x & 7));
+	int shift = (8-(x & 7));
 	unsigned int mask_pixels = ~(255 << shift);
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		if(hflip)
-			pixels = reverse24(pixels);
+		unsigned int pixels = (hflip ? reverse24(rows[r]) : rows[r]) << shift;
 		vpet_and_8_pixels(x,   y, (mask_pixels >> 16)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 16     )&0xff);
 		vpet_and_8_pixels(x+1, y, (mask_pixels >> 8 )&0xff);
@@ -265,57 +259,45 @@ void vpet_sprite_mask_8(int x, int y, int hflip, int h, const uint8_t rows[], co
 	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		unsigned int mask_pixels = mask_rows[r] << shift;
-		if(hflip) {
-			pixels = reverse8(pixels);
-			mask_pixels = reverse8(pixels);
-		}
-		vpet_and_8_pixels(x,   y, (mask_pixels >> 8)&0xff);
+		unsigned int pixels = (hflip ? reverse8(rows[r]) : rows[r]) << shift;
+		unsigned int mask_pixels = (hflip ? reverse8(mask_rows[r]) : mask_rows[r]) << shift;
+		vpet_andnot_8_pixels(x,   y, (mask_pixels >> 8)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 8     )&0xff);
-		vpet_and_8_pixels(x+1, y, (mask_pixels     )&0xff);
+		vpet_andnot_8_pixels(x+1, y, (mask_pixels     )&0xff);
 		vpet_or_8_pixels( x+1, y, (pixels          )&0xff);
 		y++;
 	}
 }
 
 void vpet_sprite_mask_16(int x, int y, int hflip, int h, const uint16_t rows[], const uint16_t mask_rows[]) {
-	int shift = (16-(x & 7));
+	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		unsigned int mask_pixels = mask_rows[r] << shift;
-		if(hflip) {
-			pixels = reverse16(pixels);
-			mask_pixels = reverse16(pixels);
-		}
-		vpet_and_8_pixels(x,   y, (mask_pixels >> 16)&0xff);
+		unsigned int pixels = (hflip ? reverse16(rows[r]) : rows[r]) << shift;
+		unsigned int mask_pixels = (hflip ? reverse16(mask_rows[r]) : mask_rows[r]) << shift;
+		vpet_andnot_8_pixels(x,   y, (mask_pixels >> 16)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 16     )&0xff);
-		vpet_and_8_pixels(x+1, y, (mask_pixels >> 8 )&0xff);
+		vpet_andnot_8_pixels(x+1, y, (mask_pixels >> 8 )&0xff);
 		vpet_or_8_pixels( x+1, y, (pixels >> 8      )&0xff);
-		vpet_and_8_pixels(x+2, y, (mask_pixels      )&0xff);
+		vpet_andnot_8_pixels(x+2, y, (mask_pixels      )&0xff);
 		vpet_or_8_pixels( x+2, y, (pixels           )&0xff);
 		y++;
 	}
 }
 
 void vpet_sprite_mask_24(int x, int y, int hflip, int h, const uint32_t rows[], const uint32_t mask_rows[]) {
-	int shift = (24-(x & 7));
+	int shift = (8-(x & 7));
 	x /= 8;
 	for(size_t r=0; r<h; r++) {
-		unsigned int pixels = rows[r] << shift;
-		unsigned int mask_pixels = mask_rows[r] << shift;
-		if(hflip) {
-			pixels = reverse24(pixels);
-			mask_pixels = reverse24(pixels);
-		}
-		vpet_and_8_pixels(x,   y, (mask_pixels >> 24)&0xff);
+		unsigned int pixels = (hflip ? reverse24(rows[r]) : rows[r]) << shift;
+		unsigned int mask_pixels = (hflip ? reverse24(mask_rows[r]) : mask_rows[r]) << shift;
+		vpet_andnot_8_pixels(x,   y, (mask_pixels >> 24)&0xff);
 		vpet_or_8_pixels( x,   y, (pixels >> 24     )&0xff);
-		vpet_and_8_pixels(x+1, y, (mask_pixels >> 16)&0xff);
+		vpet_andnot_8_pixels(x+1, y, (mask_pixels >> 16)&0xff);
 		vpet_or_8_pixels( x+1, y, (pixels >> 16     )&0xff);
-		vpet_and_8_pixels(x+2, y, (mask_pixels >> 8 )&0xff);
+		vpet_andnot_8_pixels(x+2, y, (mask_pixels >> 8 )&0xff);
 		vpet_or_8_pixels( x+2, y, (pixels >> 8      )&0xff);
-		vpet_and_8_pixels(x+3, y, (mask_pixels      )&0xff);
+		vpet_andnot_8_pixels(x+3, y, (mask_pixels      )&0xff);
 		vpet_or_8_pixels( x+3, y, (pixels           )&0xff);
 		y++;
 	}
