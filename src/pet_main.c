@@ -219,6 +219,11 @@ void vpet_refresh_screen() {
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*9, 2+6, "Press A+B");
 			vpet_draw_pet(PET_SCREEN_CENTER_X-16/2, 14, 0,  my_pet.profile.species, CF_IDLE);
 			break;
+
+		case STATE_EATING:
+			vpet_draw_pet_animation();
+			break;
+
 		default:
 			break;
 	}
@@ -230,10 +235,8 @@ void vpet_switch_state(enum game_state new_state) {
 	vpet_state = new_state;
 	second_ticks = 0;
 
-	if(new_state == STATE_DEFAULT) {
-		void reset_idle_animation();
-		reset_idle_animation();
-	}
+	void init_animation_for_state(enum game_state state);
+	init_animation_for_state(new_state);
 	vpet_refresh_screen();
 }
 
@@ -287,6 +290,8 @@ void vpet_tick_button_press() {
 
 		case STATE_FEED_MENU:
 			move_through_menu(4, STATE_DEFAULT);
+			if(key_new & KEY_A)
+				vpet_switch_state(STATE_EATING);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
@@ -314,6 +319,11 @@ void vpet_tick_button_press() {
 			move_through_menu(4, STATE_DEFAULT);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
+			break;
+
+		case STATE_EATING:
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
 			break;
 
 		default:

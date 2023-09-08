@@ -38,16 +38,26 @@ int intclamp(int a, int min, int max) {
 	return a;
 }
 
-void reset_idle_animation() {
-	current_idle_animation = IDLE_ANIM_WANDER;
+void init_animation_for_state(enum game_state new_state) {
 	pet_animation_timer = 0;
-	pet_animation_x = PET_SCREEN_CENTER_X;
-	pet_animation_y = PET_SCREEN_CENTER_Y;
 	pet_animation_frame = CF_IDLE;
 	pet_animation_hflip = 0;
+	pet_animation_x = PET_SCREEN_CENTER_X;
+	pet_animation_y = PET_SCREEN_CENTER_Y;
 
-	pet_animation_target_x = PET_SCREEN_CENTER_X;
-	pet_animation_target_y = PET_SCREEN_CENTER_Y;
+	switch(new_state) {
+		case STATE_DEFAULT:;
+			current_idle_animation = IDLE_ANIM_WANDER;
+			pet_animation_target_x = PET_SCREEN_CENTER_X;
+			pet_animation_target_y = PET_SCREEN_CENTER_Y;
+			break;
+		case STATE_EATING:
+			pet_animation_frame = CF_EATING;
+			pet_animation_x = PET_SCREEN_CENTER_X + 8;
+			break;
+		default:
+			break;
+	}
 }
 
 void vpet_draw_pet_animation() {
@@ -55,6 +65,14 @@ void vpet_draw_pet_animation() {
 	vpet_draw_pet(pet_animation_x-16/2, pet_animation_y-16/2, pet_animation_hflip,  my_pet.profile.species, pet_animation_frame);
 	if(pet_animation_frame == CF_JUMP)
 		vpet_hline(pet_animation_x-4, pet_animation_y+16/2+5, 8);
+
+	switch(vpet_state) {
+		case STATE_EATING:
+			vpet_draw_food(PET_SCREEN_CENTER_X - 16, PET_SCREEN_CENTER_Y-16/2, FOOD_PIZZA, 0);
+			break;
+		default:
+			break;
+	}
 }
 
 struct per_character_animation_params {
@@ -122,6 +140,13 @@ void vpet_tick_animation() {
 			vpet_clear_screen();
 			vpet_draw_pet_animation();
 			break;
+		case STATE_EATING:
+			if(pet_animation_frame == CF_EATING) {
+				pet_animation_frame = CF_EATING2;
+			} else if(pet_animation_frame == CF_EATING2) {
+				pet_animation_frame = CF_EATING;
+			}
+			goto draw_animation_frame;
 		default:
 			break;
 	}

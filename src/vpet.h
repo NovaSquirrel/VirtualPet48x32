@@ -75,7 +75,7 @@ enum character_frame {
 	CF_SLEEP,
 	CF_SLEEP2,
 	CF_EATING,
-	CF_EATING1,
+	CF_EATING2,
 	CF_NO_THANKS,
 	CF_SITTING,
 	CF_SITTING2,
@@ -99,6 +99,7 @@ enum character_id {
 	CHARACTER_MIMI,
 	CHARACTER_PYONKO,
 	CHARACTER_TERRIER,
+	CHARACTER_LOP,
 };
 
 void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame);
@@ -193,6 +194,7 @@ enum game_state {
 	STATE_RECORDS_MENU,
 	STATE_OPTIONS_MENU,
 	STATE_PAUSED,
+	STATE_EATING,
 };
 extern enum game_state vpet_state;
 void vpet_refresh_screen();
@@ -208,6 +210,12 @@ enum KeyCode {
   KEY_DOWN  = 0x0008,
   KEY_A     = 0x0010,
   KEY_B     = 0x0020,
+
+  KEY_PREV   = 0x0100,
+  KEY_NEXT   = 0x0200,
+  KEY_OK     = 0x0400,
+  KEY_CANCEL = 0x0800,
+
   KEY_RESET = 0x0040,
 };
 extern uint16_t key_down, key_new, key_last, key_new_or_repeat;
@@ -261,3 +269,97 @@ void RandomSeed();
 uint32_t RandomRaw();
 uint32_t Random(uint32_t Bound);
 uint32_t RandomMinMax(uint32_t Min, uint32_t Max);
+
+// ------------------------------------------------------------
+
+enum food_id {
+	FOOD_BREAD,
+	FOOD_CEREAL,
+	FOOD_SCONE,
+	FOOD_SUSHI,
+	FOOD_APPLE,
+	FOOD_CONE,
+	FOOD_PUDDING,
+	FOOD_TART,
+	FOOD_APPLE_PIE,
+	FOOD_BANANAS,
+	FOOD_BEEF_BOWL,
+	FOOD_CAKE,
+	FOOD_CHEESE,
+	FOOD_CHEESECAKE,
+	FOOD_CHERRIES,
+	FOOD_CHICKEN,
+	FOOD_CHOCOLATE,
+	FOOD_COOKIE,
+	FOOD_CORN,
+	FOOD_CORN_DOG,
+	FOOD_CREAM_CAKE,
+	FOOD_CUPCAKE,
+	FOOD_DONUT,
+	FOOD_FISH,
+	FOOD_FRENCH_FRIES,
+	FOOD_GRAPES,
+	FOOD_HAMBURGER,
+	FOOD_HOT_DOG,
+	FOOD_ICE_CREAM,
+	FOOD_KEBAB,
+	FOOD_MELON,
+	FOOD_NOODLES,
+	FOOD_OMELETTE,
+	FOOD_PARFAIT,
+	FOOD_PASTA,
+	FOOD_PEAR,
+	FOOD_PINEAPPLE,
+	FOOD_PIZZA,
+	FOOD_POPCORN,
+	FOOD_SANDWICH,
+	FOOD_SAUSAGE,
+	FOOD_STEAK,
+	FOOD_SUNDAE,
+	FOOD_TACO,
+	FOOD_TURKEY,
+	FOOD_ENERGY_DRINK,
+	FOOD_FRUIT_JUICE,
+	FOOD_MILK,
+	FOOD_SODA,
+	FOOD_ICE_CREAM_2,
+	FOOD_BREAD_SLICE,
+	FOOD_CRAB,
+	FOOD_CRACKER,
+	FOOD_EGGS,
+	FOOD_FISH_2,
+	FOOD_PIZZA_2,
+	FOOD_SHRIMP,
+	FOOD_FRIED_CHICKEN,
+	FOOD_MEAT,
+	FOOD_PEANUT,
+	FOOD_POTATO,
+	FOOD_FLOWER_DRINK,
+	FOOD_COFFEE,
+	FOOD_LOLLIPOP,
+	FOOD_WATERMELON,
+	FOOD_FISH_BURGER,
+	FOOD_TEA,
+	FOOD_PRETZEL,
+	FOOD_ICE_POP,
+	FOOD_SONIC_POP,
+	FOOD_TIDE_POD,
+	FOOD_MC_FRIES,
+	FOOD_WORLD_FRIES,
+	FOOD_MUNF_MUNF,
+	FOOD_DB_BURGER,
+};
+void vpet_draw_food(int x, int y, enum food_id food, int frame);
+
+struct food_info {
+	uint32_t add_belly;
+	uint32_t add_happy;
+	uint32_t add_heavy;
+	uint32_t flags;
+	char name[12+1];
+};
+
+enum food_flags {
+	FOOD_IS_MEAL  = 0x0001,
+	FOOD_IS_SNACK = 0x0002,
+};
