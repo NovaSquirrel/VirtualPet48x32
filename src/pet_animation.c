@@ -29,6 +29,7 @@ int pet_animation_x, pet_animation_y;
 int pet_animation_target_x, pet_animation_target_y;
 enum character_frame pet_animation_frame;
 int pet_animation_hflip;
+enum food_id pet_food_to_eat;
 
 int intclamp(int a, int min, int max) {
 	if(a < min)
@@ -68,7 +69,8 @@ void vpet_draw_pet_animation() {
 
 	switch(vpet_state) {
 		case STATE_EATING:
-			vpet_draw_food(PET_SCREEN_CENTER_X - 16, PET_SCREEN_CENTER_Y-16/2, FOOD_PIZZA, 0);
+			if(pet_animation_timer < 6)
+				vpet_draw_food(PET_SCREEN_CENTER_X - 16, pet_animation_timer ? PET_SCREEN_CENTER_Y-16/2 : 0, pet_food_to_eat, (pet_animation_timer / 2) % 3);
 			break;
 		default:
 			break;
@@ -141,10 +143,15 @@ void vpet_tick_animation() {
 			vpet_draw_pet_animation();
 			break;
 		case STATE_EATING:
-			if(pet_animation_frame == CF_EATING) {
-				pet_animation_frame = CF_EATING2;
-			} else if(pet_animation_frame == CF_EATING2) {
-				pet_animation_frame = CF_EATING;
+			if(pet_animation_timer > 7) {
+				vpet_switch_state(STATE_DEFAULT);			
+				return;
+			} else if(pet_animation_timer > 1) {
+				if(pet_animation_frame == CF_EATING) {
+					pet_animation_frame = CF_EATING2;
+				} else if(pet_animation_frame == CF_EATING2) {
+					pet_animation_frame = CF_EATING;
+				}
 			}
 			goto draw_animation_frame;
 		default:

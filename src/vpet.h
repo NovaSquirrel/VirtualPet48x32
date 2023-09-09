@@ -31,6 +31,10 @@
 
 // ------------------------------------------------------------
 
+#define MAX_FOOD_INVENTORY_SLOTS FOOD_COUNT
+
+// ------------------------------------------------------------
+
 void vpet_clear_screen();
 void vpet_set_pixel(int x, int y, int value);
 int  vpet_get_pixel(int x, int y);
@@ -194,6 +198,7 @@ enum game_state {
 	STATE_RECORDS_MENU,
 	STATE_OPTIONS_MENU,
 	STATE_PAUSED,
+	STATE_WHICH_FOOD,
 	STATE_EATING,
 };
 extern enum game_state vpet_state;
@@ -348,6 +353,8 @@ enum food_id {
 	FOOD_WORLD_FRIES,
 	FOOD_MUNF_MUNF,
 	FOOD_DB_BURGER,
+
+	FOOD_COUNT
 };
 void vpet_draw_food(int x, int y, enum food_id food, int frame);
 
@@ -362,4 +369,13 @@ struct food_info {
 enum food_flags {
 	FOOD_IS_MEAL  = 0x0001,
 	FOOD_IS_SNACK = 0x0002,
+
+	FOOD_CATEGORY_MASK    = 0x0f00,
+	FOOD_CATEGORY_GRAINS  = 0x0100,
+	FOOD_CATEGORY_PROTEIN = 0x0200,
+	FOOD_CATEGORY_PRODUCE = 0x0300,
+	FOOD_CATEGORY_COOKED  = 0x0400,
+	FOOD_CATEGORY_DESSERT = 0x0500,
+	FOOD_CATEGORY_FROZEN  = 0x0600,
+	FOOD_CATEGORY_DRINK   = 0x0700,
 };

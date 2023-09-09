@@ -22,6 +22,12 @@
 // Virtual pet game variables
 struct vpet_status my_pet;
 int my_currency = 12345;
+uint8_t food_inventory[MAX_FOOD_INVENTORY_SLOTS] = {0};
+
+uint8_t filtered_menu_options[MAX_FOOD_INVENTORY_SLOTS];
+size_t filtered_menu_option_count;
+
+// Pet state
 int second_ticks = 0; // Ticks up to 59 and then back to zero
 enum game_state vpet_state = STATE_DEFAULT;
 int pet_paused = 0;
@@ -29,6 +35,11 @@ int pet_paused = 0;
 // Menu options and stuff?
 int menu_cursor = 0;
 int menu_page = 0;
+int menu_option; // For holding onto a menu option, like a filter or something
+
+// External variables
+extern enum food_id pet_food_to_eat;
+extern const struct food_info food_infos[];
 
 // ----------------------------------------------
 
@@ -50,14 +61,17 @@ void vpet_init() {
 	time(&my_pet.profile.created_at);
 	strcpy(my_pet.profile.name, "Pyonkotchi");
 
-	my_pet.stats[STAT_BELLY] = MAX_STAT;
-	my_pet.stats[STAT_HAPPY] = MAX_STAT/2;
-	my_pet.stats[STAT_CLEAN] = MAX_STAT/3;
+	my_pet.stats[STAT_BELLY] = 0; //MAX_STAT;
+	my_pet.stats[STAT_HAPPY] = 0; //MAX_STAT/2;
+	my_pet.stats[STAT_CLEAN] = MAX_STAT/2;
 
 	my_pet.stats[STAT_POOP]           = MAX_STAT;
 	my_pet.stats[STAT_ATTENTION]      = MAX_STAT;
 	my_pet.stats[STAT_COMMON_EVENT]   = MAX_STAT;
 	my_pet.stats[STAT_UNCOMMON_EVENT] = MAX_STAT;
+
+	memset(food_inventory, 99, sizeof(food_inventory));
+	memset(food_inventory, 255, 8);
 
 	void vpet_switch_state(enum game_state new_state);
 	vpet_switch_state(STATE_DEFAULT);
@@ -84,6 +98,25 @@ void vpet_draw_header(const char *text) {
 	vpet_hline(2, 6, PET_SCREEN_W-4);
 }
 
+void vpet_draw_four_menu_items(const char *item1, const char *item2, const char *item3, const char *item4) {
+	if(item1)
+		vpet_draw_text(4, 6*1+2, item1);
+	if(item2)
+		vpet_draw_text(4, 6*2+2, item2);
+	if(item3)
+		vpet_draw_text(4, 6*3+2, item3);
+	if(item4)
+		vpet_draw_text(4, 6*4+2, item4);
+}
+
+int wrap_within_limit(int value, int max) {
+	if(value < 0)
+		return max+value;
+	if(value >= max)
+		return max-value;
+	return value;
+}
+
 // Redraw the screen, like in response to changing between states
 void vpet_refresh_screen() {
 	char line_buffer[13];
@@ -98,15 +131,9 @@ void vpet_refresh_screen() {
 		case STATE_MAIN_MENU:
 			vpet_draw_header("Main Menu");
 			if(menu_cursor < 4) {
-				vpet_draw_text(4, 6*1+2, "Status");
-				vpet_draw_text(4, 6*2+2, "Feed");
-				vpet_draw_text(4, 6*3+2, "Play");
-				vpet_draw_text(4, 6*4+2, "Clean");
+				vpet_draw_four_menu_items("Status", "Feed", "Play", "Clean");
 			} else {
-				vpet_draw_text(4, 6*1+2, "Travel");
-				vpet_draw_text(4, 6*2+2, "Records");
-				vpet_draw_text(4, 6*3+2, "Options");
-				vpet_draw_text(4, 6*4+2, "Pause");
+				vpet_draw_four_menu_items("Travel", "Records", "Options", "Pause");
 			}
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
@@ -159,57 +186,40 @@ void vpet_refresh_screen() {
 
 		case STATE_FEED_MENU:
 			vpet_draw_header("Feed");
-			vpet_draw_text(4, 6*1+2, "Meal");
-			vpet_draw_text(4, 6*2+2, "Snack");
-			vpet_draw_text(4, 6*3+2, "?");
-			vpet_draw_text(4, 6*4+2, "?");
+			if(menu_cursor < 4) {
+				vpet_draw_four_menu_items("Grains", "Protein", "Produce", "Cooked");
+			} else {
+				vpet_draw_four_menu_items("Dessert", "Frozen", "Drink", "All");
+			}
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_PLAY_MENU:
 			vpet_draw_header("Play!");
-			vpet_draw_text(4, 6*1+2, "Game");
-			vpet_draw_text(4, 6*2+2, "Item");
-			vpet_draw_text(4, 6*3+2, "Petting");
-			vpet_draw_text(4, 6*4+2, "Explore");
+			vpet_draw_four_menu_items("Game", "Item", "Petting", "Explore");
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_CLEAN_MENU:
 			vpet_draw_header("Clean");
-			vpet_draw_text(4, 6*1+2, "Brushing");
-			vpet_draw_text(4, 6*2+2, "Bath");
-			vpet_draw_text(4, 6*3+2, "?");
-			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_four_menu_items("Brushing", "Bath", "?", "?");
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_TRAVEL_MENU:
 			vpet_draw_header("Travel");
 			if(menu_cursor < 4) {
-				vpet_draw_text(4, 6*1+2, "Home");
-				vpet_draw_text(4, 6*2+2, "Shop");
-				vpet_draw_text(4, 6*3+2, "Library");
-				vpet_draw_text(4, 6*4+2, "Park");
+				vpet_draw_four_menu_items("Home", "Shop", "Library", "Park");
 			} else {
-				vpet_draw_text(4, 6*1+2, "Forest");
-				vpet_draw_text(4, 6*2+2, "Beach");
-				vpet_draw_text(4, 6*3+2, "Lake");
-				vpet_draw_text(4, 6*4+2, "Mountains");
+				vpet_draw_four_menu_items("Forest", "Beach", "Lake", "Mountains");
 			}
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_RECORDS_MENU:
 			vpet_draw_header("Records");
-			vpet_draw_text(4, 6*1+2, "Items");
-			vpet_draw_text(4, 6*2+2, "Pets");
-			vpet_draw_text(4, 6*3+2, "?");
-			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_four_menu_items("Items", "Pets", "?", "?");
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_OPTIONS_MENU:
 			vpet_draw_header("Options");
-			vpet_draw_text(4, 6*1+2, "Device");
-			vpet_draw_text(4, 6*2+2, "Sound");
-			vpet_draw_text(4, 6*3+2, "About");
-			vpet_draw_text(4, 6*4+2, "?");
+			vpet_draw_four_menu_items("Device", "Sound", "About", "?");
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 
@@ -218,6 +228,24 @@ void vpet_refresh_screen() {
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*6, 2, "Paused");
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*9, 2+6, "Press A+B");
 			vpet_draw_pet(PET_SCREEN_CENTER_X-16/2, 14, 0,  my_pet.profile.species, CF_IDLE);
+			break;
+
+		case STATE_WHICH_FOOD:
+			{
+				int which_food = filtered_menu_options[menu_cursor];
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)-4-16-8, 0, filtered_menu_options[wrap_within_limit(menu_cursor-1, filtered_menu_option_count)], 0);
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2),        0, which_food, 0);
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)+4+16,   0, filtered_menu_options[wrap_within_limit(menu_cursor+1, filtered_menu_option_count)], 0);
+				vpet_draw_text(PET_SCREEN_CENTER_X - strlen(food_infos[which_food].name) * 2, 17, food_infos[which_food].name);
+
+				int amount = food_inventory[which_food];
+				if(amount == 255)
+					strcpy(line_buffer, "Inf");
+				else
+					sprintf(line_buffer, "x%-2d", amount);
+				vpet_draw_textf(0, 17+6+2, "%2d/%d", menu_cursor+1, filtered_menu_option_count);
+				vpet_draw_text(PET_SCREEN_W - strlen(line_buffer) * 4, 17+6+2, line_buffer);
+			}
 			break;
 
 		case STATE_EATING:
@@ -229,8 +257,8 @@ void vpet_refresh_screen() {
 	}
 }
 
-void vpet_switch_state(enum game_state new_state) {
-	menu_cursor = 0;
+void back_out_of_menu(enum game_state new_state, int new_cursor) {
+	menu_cursor = new_cursor;
 	menu_page = 0;
 	vpet_state = new_state;
 	second_ticks = 0;
@@ -240,7 +268,11 @@ void vpet_switch_state(enum game_state new_state) {
 	vpet_refresh_screen();
 }
 
-void move_through_menu_generic(int *value, int item_count, uint16_t keys_back, uint16_t keys_forward, int allow_repeat, enum game_state exit_state) {
+void vpet_switch_state(enum game_state new_state) {
+	back_out_of_menu(new_state, 0);
+}
+
+void move_through_menu_generic(int *value, int item_count, uint16_t keys_back, uint16_t keys_forward, int allow_repeat, enum game_state exit_state, int exit_cursor) {
 	if((allow_repeat ? key_new_or_repeat : key_new) & keys_back) {
 		(*value)--;
 		if((*value) < 0)
@@ -252,12 +284,18 @@ void move_through_menu_generic(int *value, int item_count, uint16_t keys_back, u
 			(*value) = 0;
 	}
 	if(key_new & KEY_B) {
-		vpet_switch_state(exit_state);
+		back_out_of_menu(exit_state, exit_cursor);
 	}
 }
 
-void move_through_menu(int item_count, enum game_state exit_state) {
-	move_through_menu_generic(&menu_cursor, item_count, KEY_UP, KEY_DOWN, 1, exit_state);
+void move_through_menu(int item_count, enum game_state exit_state, int exit_cursor) {
+	move_through_menu_generic(&menu_cursor, item_count, KEY_UP, KEY_DOWN, 1, exit_state, exit_cursor);
+}
+
+void add_to_pet_stat(int which_stat, int value) {
+	my_pet.stats[which_stat] += value;
+	if(my_pet.stats[which_stat] > MAX_STAT)
+		my_pet.stats[which_stat] = MAX_STAT;
 }
 
 // Tick because of a button press
@@ -268,7 +306,7 @@ void vpet_tick_button_press() {
 				vpet_switch_state(STATE_MAIN_MENU);
 			break;
 		case STATE_MAIN_MENU:
-			move_through_menu(8, STATE_DEFAULT);
+			move_through_menu(8, STATE_DEFAULT, 0);
 			if(key_new & KEY_A) {
 				static const enum game_state new_state[] = {STATE_STATUS, STATE_FEED_MENU, STATE_PLAY_MENU, STATE_CLEAN_MENU, STATE_TRAVEL_MENU, STATE_RECORDS_MENU, STATE_OPTIONS_MENU, STATE_PAUSED};
 				vpet_switch_state(new_state[menu_cursor]);
@@ -283,45 +321,78 @@ void vpet_tick_button_press() {
 			}
 			break;
 		case STATE_STATUS:
-			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT, KEY_RIGHT|KEY_A, 0, STATE_DEFAULT);
+			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT, KEY_RIGHT|KEY_A, 0, STATE_MAIN_MENU, 0);
 			if(key_new)
 				vpet_refresh_screen();
 			break;
 
 		case STATE_FEED_MENU:
-			move_through_menu(4, STATE_DEFAULT);
-			if(key_new & KEY_A)
-				vpet_switch_state(STATE_EATING);
+			move_through_menu(8, STATE_MAIN_MENU, 1);
+			if(key_new & KEY_A) {
+
+				int category_id = ((menu_cursor+1) & 7) << 8;
+				filtered_menu_option_count = 0;
+				for(int i=0; i<MAX_FOOD_INVENTORY_SLOTS; i++) {
+					if(!food_inventory[i])
+						continue;
+					if(category_id && (food_infos[i].flags & FOOD_CATEGORY_MASK) != category_id)
+						continue;
+					filtered_menu_options[filtered_menu_option_count++] = i;
+				}
+
+				// Only go into the submenu if there's anything to select within it!
+				if(filtered_menu_option_count) {
+					menu_option = menu_cursor;
+					vpet_switch_state(STATE_WHICH_FOOD);
+				}
+			}
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 		case STATE_PLAY_MENU:
-			move_through_menu(4, STATE_DEFAULT);
+			move_through_menu(4, STATE_MAIN_MENU, 2);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 		case STATE_CLEAN_MENU:
-			move_through_menu(4, STATE_DEFAULT);
+			move_through_menu(4, STATE_MAIN_MENU, 3);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 		case STATE_TRAVEL_MENU:
-			move_through_menu(8, STATE_DEFAULT);
+			move_through_menu(8, STATE_MAIN_MENU, 4);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 		case STATE_RECORDS_MENU:
-			move_through_menu(4, STATE_DEFAULT);
+			move_through_menu(4, STATE_MAIN_MENU, 5);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 		case STATE_OPTIONS_MENU:
-			move_through_menu(4, STATE_DEFAULT);
+			move_through_menu(4, STATE_MAIN_MENU, 6);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
 
+		case STATE_WHICH_FOOD:
+			if(key_new & KEY_A) {
+				pet_food_to_eat = filtered_menu_options[menu_cursor];
+				if(food_inventory[pet_food_to_eat] != 255)
+					food_inventory[pet_food_to_eat]--;
+				add_to_pet_stat(STAT_BELLY, food_infos[pet_food_to_eat].add_belly);
+				add_to_pet_stat(STAT_HAPPY, food_infos[pet_food_to_eat].add_happy);
+				add_to_pet_stat(STAT_HEAVY, food_infos[pet_food_to_eat].add_heavy);
+				vpet_switch_state(STATE_EATING);
+			}
+			move_through_menu_generic(&menu_cursor, filtered_menu_option_count, KEY_LEFT, KEY_RIGHT, 1, STATE_FEED_MENU, menu_option);
+			if(key_new_or_repeat & (KEY_LEFT | KEY_RIGHT))
+				vpet_refresh_screen();
+			break;
+
 		case STATE_EATING:
+			if(key_new & KEY_A)
+				vpet_switch_state(STATE_MAIN_MENU);
 			if(key_new & KEY_B)
 				vpet_switch_state(STATE_DEFAULT);
 			break;
