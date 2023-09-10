@@ -46,6 +46,8 @@ extern const struct food_info food_infos[];
 const char* gender_names[] = {"None", "Other", "Girl", "Boy", "Nonbinary"};
 const char* personality_names[] = {"?", "Kind", "Energetic", "Laid back", "Cool", "Silly", "Stubborn", "Cautious"};
 
+const uint16_t main_menu_icons[] = {0, 0, 960, 1056, 2832, 2576, 2064, 2064, 1064, 964, 32290, 17, 32265, 7, 32256, 0, 8188, 4116, 4116, 4116, 4100, 8188, 4100, 4116, 4116, 4116, 4100, 4100, 4100, 4100, 8188, 3640, 256, 128, 256, 256, 128, 32766, 16386, 22530, 31758, 31854, 22626, 16386, 32766, 0, 0, 0, 0, 0, 480, 1296, 2360, 4596, 9228, 18698, 4618, 9226, 18442, 4106, 8202, 10, 10, 0, 0, 0, 12384, 10448, 9544, 8772, 8772, 12916, 10964, 12116, 8788, 8780, 12868, 2724, 1820, 0, 0, 16380, 8196, 8198, 13130, 11412, 8236, 8276, 13476, 10948, 8196, 8196, 8196, 8196, 16380, 0, 3584, 4352, 3328, 17664, 42240, 47360, 16512, 14400, 1056, 528, 264, 132, 66, 36, 24, 0, 0, 5120, 5120, 16640, 23808, 15872, 15872, 0, 0, 40, 40, 130, 186, 124, 124, 0};
+
 // ----------------------------------------------
 
 void vpet_init() {
@@ -136,6 +138,7 @@ void vpet_refresh_screen() {
 				vpet_draw_four_menu_items("Travel", "Records", "Options", "Pause");
 			}
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
+			vpet_sprite_xor_16(PET_SCREEN_W-16, PET_SCREEN_CENTER_Y-16/2, 0, 16, &main_menu_icons[menu_cursor*16]);
 			break;
 
 		case STATE_STATUS:
