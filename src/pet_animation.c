@@ -18,6 +18,7 @@
  */
 #include "vpet.h"
 
+#define HAPPY_JUMP_HEIGHT 5
 
 enum idle_animation {
 	IDLE_ANIM_WANDER
@@ -65,7 +66,7 @@ void vpet_draw_pet_animation() {
 	// Assume screen was cleared
 	vpet_draw_pet(pet_animation_x-16/2, pet_animation_y-16/2, pet_animation_hflip,  my_pet.profile.species, pet_animation_frame);
 	if(pet_animation_frame == CF_JUMP)
-		vpet_hline(pet_animation_x-4, pet_animation_y+16/2+5, 8);
+		vpet_hline(pet_animation_x-4, pet_animation_y+16/2+HAPPY_JUMP_HEIGHT, 8);
 
 	switch(vpet_state) {
 		case STATE_EATING:
@@ -98,11 +99,11 @@ void vpet_tick_animation() {
 		case STATE_DEFAULT:
 			if(!Random(animation_params->jump_chance) && pet_animation_frame != CF_JUMP) { // Jump sometimes
 				pet_animation_frame = CF_JUMP;
-				pet_animation_y -= 5; // Jump up
+				pet_animation_y -= HAPPY_JUMP_HEIGHT; // Jump up
 				goto draw_animation_frame;
 			}
 			if(pet_animation_frame == CF_JUMP) {
-				pet_animation_y += 5; // Fall back down
+				pet_animation_y += HAPPY_JUMP_HEIGHT; // Fall back down
 				pet_animation_frame = CF_IDLE;
 				goto draw_animation_frame;
 			}
@@ -144,8 +145,8 @@ void vpet_tick_animation() {
 			break;
 		case STATE_EATING:
 			if(pet_animation_timer > 7) {
-				vpet_switch_state(STATE_DEFAULT);			
-				return;
+				vpet_switch_state(STATE_HAPPY_JUMP);
+				goto draw_animation_frame;
 			} else if(pet_animation_timer > 1) {
 				if(pet_animation_frame == CF_EATING) {
 					pet_animation_frame = CF_EATING2;
@@ -154,6 +155,19 @@ void vpet_tick_animation() {
 				}
 			}
 			goto draw_animation_frame;
+		case STATE_HAPPY_JUMP:
+			if(pet_animation_timer > 5) {
+				vpet_switch_state(STATE_DEFAULT);
+				return;
+			}
+			if(pet_animation_frame == CF_IDLE) {
+				pet_animation_frame = CF_JUMP;
+				pet_animation_y -= HAPPY_JUMP_HEIGHT;
+			} else if(pet_animation_frame == CF_JUMP) {
+				pet_animation_frame = CF_IDLE;
+				pet_animation_y += HAPPY_JUMP_HEIGHT;
+			}
+			goto draw_animation_frame;			
 		default:
 			break;
 	}

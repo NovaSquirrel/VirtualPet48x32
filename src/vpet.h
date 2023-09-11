@@ -189,17 +189,26 @@ void vpet_tick();
 
 enum game_state {
 	STATE_DEFAULT,
+
+	// Main menu
 	STATE_MAIN_MENU,
-	STATE_STATUS,
 	STATE_FEED_MENU,
 	STATE_PLAY_MENU,
 	STATE_CLEAN_MENU,
 	STATE_TRAVEL_MENU,
 	STATE_RECORDS_MENU,
 	STATE_OPTIONS_MENU,
-	STATE_PAUSED,
+
+	// Submenu
 	STATE_WHICH_FOOD,
+
+	// Doing stuff
+	STATE_STATUS,
+	STATE_PAUSED,
+
+	// Animation states
 	STATE_EATING,
+	STATE_HAPPY_JUMP,
 };
 extern enum game_state vpet_state;
 void vpet_refresh_screen();
