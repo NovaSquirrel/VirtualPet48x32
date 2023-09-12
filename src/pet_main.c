@@ -39,14 +39,12 @@ int menu_option; // For holding onto a menu option, like a filter or something
 
 // External variables
 extern enum food_id pet_food_to_eat;
-extern const struct food_info food_infos[];
 
 // ----------------------------------------------
 
 const char* gender_names[] = {"None", "Other", "Girl", "Boy", "Nonbinary"};
 const char* personality_names[] = {"?", "Kind", "Energetic", "Laid back", "Cool", "Silly", "Stubborn", "Cautious"};
 
-const uint16_t main_menu_icons[] = {0, 0, 960, 1056, 2832, 2576, 2064, 2064, 1064, 964, 32290, 17, 32265, 7, 32256, 0, 8188, 4116, 4116, 4116, 4100, 8188, 4100, 4116, 4116, 4116, 4100, 4100, 4100, 4100, 8188, 3640, 256, 128, 256, 256, 128, 32766, 16386, 22530, 31758, 31854, 22626, 16386, 32766, 0, 0, 0, 0, 0, 480, 1296, 2360, 4596, 9228, 18698, 4618, 9226, 18442, 4106, 8202, 10, 10, 0, 0, 0, 12384, 10448, 9544, 8772, 8772, 12916, 10964, 12116, 8788, 8780, 12868, 2724, 1820, 0, 0, 16380, 8196, 8198, 13130, 11412, 8236, 8276, 13476, 10948, 8196, 8196, 8196, 8196, 16380, 0, 3584, 4352, 3328, 17664, 42240, 47360, 16512, 14400, 1056, 528, 264, 132, 66, 36, 24, 0, 0, 5120, 5120, 16640, 23808, 15872, 15872, 0, 0, 40, 40, 130, 186, 124, 124, 0};
 
 // ----------------------------------------------
 
@@ -65,7 +63,7 @@ void vpet_init() {
 
 	my_pet.stats[STAT_BELLY] = 0; //MAX_STAT;
 	my_pet.stats[STAT_HAPPY] = 0; //MAX_STAT/2;
-	my_pet.stats[STAT_CLEAN] = MAX_STAT/2;
+	my_pet.stats[STAT_CLEAN] = 0; //MAX_STAT;
 
 	my_pet.stats[STAT_POOP]           = MAX_STAT;
 	my_pet.stats[STAT_ATTENTION]      = MAX_STAT;
@@ -126,10 +124,6 @@ void vpet_refresh_screen() {
 
 	vpet_clear_screen();
 	switch(vpet_state) {
-		case STATE_DEFAULT:
-			vpet_draw_pet_animation();
-			break;
-
 		case STATE_MAIN_MENU:
 			vpet_draw_header("Main Menu");
 			if(menu_cursor < 4) {
@@ -203,7 +197,7 @@ void vpet_refresh_screen() {
 			break;
 		case STATE_CLEAN_MENU:
 			vpet_draw_header("Clean");
-			vpet_draw_four_menu_items("Brushing", "Bath", "?", "?");
+			vpet_draw_four_menu_items("Brushing", "Bath", NULL, NULL);
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 		case STATE_TRAVEL_MENU:
@@ -222,7 +216,7 @@ void vpet_refresh_screen() {
 			break;
 		case STATE_OPTIONS_MENU:
 			vpet_draw_header("Options");
-			vpet_draw_four_menu_items("Device", "Sound", "About", "?");
+			vpet_draw_four_menu_items("Device", "Sound", "About", "Reset");
 			vpet_draw_text(0, 6*((menu_cursor%4)+1)+2, ">");
 			break;
 
@@ -251,7 +245,19 @@ void vpet_refresh_screen() {
 			}
 			break;
 
+		case STATE_WHICH_GAME:
+			break;
+
+		case STATE_WHICH_ITEM:
+			break;
+
+		case STATE_BRUSHING:
+		case STATE_PETTING:
+		case STATE_BATHING:
+		case STATE_EXPLORE:
 		case STATE_EATING:
+		case STATE_DEFAULT:
+		case STATE_NO_THANKS:
 			vpet_draw_pet_animation();
 			break;
 
@@ -308,6 +314,7 @@ void vpet_tick_button_press() {
 			if(key_new & KEY_A)
 				vpet_switch_state(STATE_MAIN_MENU);
 			break;
+
 		case STATE_MAIN_MENU:
 			move_through_menu(8, STATE_DEFAULT, 0);
 			if(key_new & KEY_A) {
@@ -317,12 +324,14 @@ void vpet_tick_button_press() {
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_PAUSED:
 			if( (key_down & (KEY_A | KEY_B)) == (KEY_A | KEY_B) ) {
 				vpet_switch_state(STATE_DEFAULT);
 				pet_paused = 0;
 			}
 			break;
+
 		case STATE_STATUS:
 			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT, KEY_RIGHT|KEY_A, 0, STATE_MAIN_MENU, 0);
 			if(key_new)
@@ -352,26 +361,39 @@ void vpet_tick_button_press() {
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_PLAY_MENU:
 			move_through_menu(4, STATE_MAIN_MENU, 2);
+			if(key_new & KEY_A) {
+				static const enum game_state new_state[] = {STATE_WHICH_GAME, STATE_WHICH_ITEM, STATE_PETTING, STATE_EXPLORE};
+				vpet_switch_state(new_state[menu_cursor]);
+			}
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_CLEAN_MENU:
-			move_through_menu(4, STATE_MAIN_MENU, 3);
+			move_through_menu(2, STATE_MAIN_MENU, 3);
+			if(key_new & KEY_A) {
+				static const enum game_state new_state[] = {STATE_BRUSHING, STATE_BATHING};
+				vpet_switch_state(new_state[menu_cursor]);
+			}
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_TRAVEL_MENU:
 			move_through_menu(8, STATE_MAIN_MENU, 4);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_RECORDS_MENU:
 			move_through_menu(4, STATE_MAIN_MENU, 5);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
 				vpet_refresh_screen();
 			break;
+
 		case STATE_OPTIONS_MENU:
 			move_through_menu(4, STATE_MAIN_MENU, 6);
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
@@ -381,11 +403,24 @@ void vpet_tick_button_press() {
 		case STATE_WHICH_FOOD:
 			if(key_new & KEY_A) {
 				pet_food_to_eat = filtered_menu_options[menu_cursor];
+				if((unsigned)(my_pet.stats[STAT_BELLY] + food_infos[pet_food_to_eat].add_belly) >= ((unsigned)MAX_STAT + (unsigned)MAX_STAT/8)) {
+					vpet_switch_state(STATE_NO_THANKS);
+					break;
+				}
+
 				if(food_inventory[pet_food_to_eat] != 255)
 					food_inventory[pet_food_to_eat]--;
 				add_to_pet_stat(STAT_BELLY, food_infos[pet_food_to_eat].add_belly);
 				add_to_pet_stat(STAT_HAPPY, food_infos[pet_food_to_eat].add_happy);
 				add_to_pet_stat(STAT_HEAVY, food_infos[pet_food_to_eat].add_heavy);
+				uint32_t messiness = food_infos[pet_food_to_eat].messiness;
+				if(messiness < 0) {
+					add_to_pet_stat(STAT_CLEAN, -messiness);
+				} else if(my_pet.stats[STAT_CLEAN] > messiness) {
+					my_pet.stats[STAT_CLEAN] -= messiness; 
+				} else if(my_pet.stats[STAT_CLEAN]) {
+					my_pet.stats[STAT_CLEAN] = 1; // Lower to zero soon and trigger the event or hitting zero
+				}
 				vpet_switch_state(STATE_EATING);
 			}
 			move_through_menu_generic(&menu_cursor, filtered_menu_option_count, KEY_LEFT, KEY_RIGHT, 1, STATE_FEED_MENU, menu_option);
@@ -393,7 +428,46 @@ void vpet_tick_button_press() {
 				vpet_refresh_screen();
 			break;
 
+		case STATE_WHICH_GAME:
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
+			break;
+
+		case STATE_WHICH_ITEM:
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
+			break;
+
+		case STATE_BRUSHING:
+			if(key_new & KEY_A) {
+				add_to_pet_stat(STAT_HAPPY, MAX_STAT/24);
+				add_to_pet_stat(STAT_CLEAN, MAX_STAT/12);
+				void vpet_animation_press_brushing();
+				vpet_animation_press_brushing();
+				vpet_draw_pet_animation_and_clear();
+			}
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
+			break;
+		case STATE_PETTING:
+			if(key_new & KEY_A) {
+				add_to_pet_stat(STAT_HAPPY, MAX_STAT/12);
+				void vpet_animation_press_petting();
+				vpet_animation_press_petting();
+				vpet_draw_pet_animation_and_clear();
+			}
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
+			break;
+		case STATE_EXPLORE:
+			if(key_new & KEY_B)
+				vpet_switch_state(STATE_DEFAULT);
+			break;
+
+		// Cancellable animations
+		case STATE_BATHING:
 		case STATE_EATING:
+		case STATE_NO_THANKS:
 			if(key_new & KEY_A)
 				vpet_switch_state(STATE_MAIN_MENU);
 			if(key_new & KEY_B)

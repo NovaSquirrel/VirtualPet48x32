@@ -20,8 +20,11 @@
 
 #define HAPPY_JUMP_HEIGHT 5
 
+extern const uint16_t heart10_art[];
+extern const uint8_t heart7_art[];
+
 enum idle_animation {
-	IDLE_ANIM_WANDER
+	IDLE_ANIM_WANDER, // For STATE_DEFAULT
 };
 
 enum idle_animation current_idle_animation;
@@ -31,6 +34,7 @@ int pet_animation_target_x, pet_animation_target_y;
 enum character_frame pet_animation_frame;
 int pet_animation_hflip;
 enum food_id pet_food_to_eat;
+int pet_animation_react_timer; // Reacting to a press and then going back to normal
 
 int intclamp(int a, int min, int max) {
 	if(a < min)
@@ -46,6 +50,7 @@ void init_animation_for_state(enum game_state new_state) {
 	pet_animation_hflip = 0;
 	pet_animation_x = PET_SCREEN_CENTER_X;
 	pet_animation_y = PET_SCREEN_CENTER_Y;
+	pet_animation_react_timer = 0;
 
 	switch(new_state) {
 		case STATE_DEFAULT:;
@@ -53,29 +58,62 @@ void init_animation_for_state(enum game_state new_state) {
 			pet_animation_target_x = PET_SCREEN_CENTER_X;
 			pet_animation_target_y = PET_SCREEN_CENTER_Y;
 			break;
+
 		case STATE_EATING:
 			pet_animation_frame = CF_EATING;
 			pet_animation_x = PET_SCREEN_CENTER_X + 8;
 			break;
+
+		case STATE_NO_THANKS:
+			pet_animation_frame = CF_NO_THANKS;
+			break;
+
 		default:
 			break;
 	}
 }
 
 void vpet_draw_pet_animation() {
+	// Draw under
+	switch(vpet_state) {
+		case STATE_BRUSHING:
+		case STATE_PETTING:
+			vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, "B to stop");
+			if(pet_animation_react_timer) {
+				if(Random(2)) {
+					for(int i=0; i<4; i++) {
+						vpet_sprite_16(i*12, RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 8, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
+					}
+				} else {
+					for(int i=0; i<6; i++) {
+						vpet_sprite_8(i*8, RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 8, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
+					}
+				}
+			}
+			break;
+		default:
+			break;
+	}
+
 	// Assume screen was cleared
 	vpet_draw_pet(pet_animation_x-16/2, pet_animation_y-16/2, pet_animation_hflip,  my_pet.profile.species, pet_animation_frame);
 	if(pet_animation_frame == CF_JUMP)
 		vpet_hline(pet_animation_x-4, pet_animation_y+16/2+HAPPY_JUMP_HEIGHT, 8);
 
+	// Draw over
 	switch(vpet_state) {
 		case STATE_EATING:
 			if(pet_animation_timer < 6)
-				vpet_draw_food(PET_SCREEN_CENTER_X - 16, pet_animation_timer ? PET_SCREEN_CENTER_Y-16/2 : 0, pet_food_to_eat, (pet_animation_timer / 2) % 3);
+				vpet_draw_food(PET_SCREEN_CENTER_X - 16, pet_animation_timer ? PET_SCREEN_CENTER_Y-16/2 : 0, pet_food_to_eat, pet_animation_timer / 2);
 			break;
 		default:
 			break;
 	}
+}
+
+void vpet_draw_pet_animation_and_clear() {
+	vpet_clear_screen();
+	vpet_draw_pet_animation();
 }
 
 struct per_character_animation_params {
@@ -143,10 +181,17 @@ void vpet_tick_animation() {
 			vpet_clear_screen();
 			vpet_draw_pet_animation();
 			break;
+
 		case STATE_EATING:
 			if(pet_animation_timer > 7) {
-				vpet_switch_state(STATE_HAPPY_JUMP);
-				goto draw_animation_frame;
+				vpet_switch_state(STATE_DEFAULT);
+				return;
+			} else if(food_infos[pet_food_to_eat].flags & FOOD_DONT_EAT_PLATE && pet_animation_timer >= 6) {
+				pet_animation_frame = CF_EATING;
+				if(pet_animation_timer == 7) {
+					vpet_switch_state(STATE_DEFAULT);
+					return;
+				}
 			} else if(pet_animation_timer > 1) {
 				if(pet_animation_frame == CF_EATING) {
 					pet_animation_frame = CF_EATING2;
@@ -155,6 +200,7 @@ void vpet_tick_animation() {
 				}
 			}
 			goto draw_animation_frame;
+
 		case STATE_HAPPY_JUMP:
 			if(pet_animation_timer > 5) {
 				vpet_switch_state(STATE_DEFAULT);
@@ -168,8 +214,44 @@ void vpet_tick_animation() {
 				pet_animation_y += HAPPY_JUMP_HEIGHT;
 			}
 			goto draw_animation_frame;			
+
+		case STATE_NO_THANKS:
+			if(pet_animation_timer > 4) {
+				vpet_switch_state(STATE_DEFAULT);
+				return;
+			}
+			pet_animation_hflip ^= 1;
+			goto draw_animation_frame;
+
+		case STATE_BRUSHING:
+		case STATE_PETTING:
+			if(pet_animation_react_timer) {
+				pet_animation_react_timer--;
+			} else {
+				pet_animation_frame = CF_IDLE;
+				if(!Random(animation_params->second_frame_chance)) { // Use the other animation frame
+					pet_animation_frame = CF_IDLE2;
+				}
+			}
+			if(!Random(animation_params->flip_chance)) { // Flip
+				pet_animation_hflip ^= 1;
+			}
+			goto draw_animation_frame;
+
 		default:
 			break;
 	}
 	pet_animation_timer++;
+}
+
+// ----------------------------------------------------------------------------
+
+void vpet_animation_press_brushing() {
+	pet_animation_react_timer = 1;
+	pet_animation_frame = CF_HAPPY;
+}
+
+void vpet_animation_press_petting() {
+	pet_animation_react_timer = 1;
+	pet_animation_frame = CF_HAPPY;
 }

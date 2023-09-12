@@ -201,19 +201,27 @@ enum game_state {
 
 	// Submenu
 	STATE_WHICH_FOOD,
+	STATE_WHICH_GAME,
+	STATE_WHICH_ITEM,
 
 	// Doing stuff
 	STATE_STATUS,
 	STATE_PAUSED,
+	STATE_BRUSHING,
+	STATE_BATHING,
+	STATE_PETTING,
+	STATE_EXPLORE,
 
 	// Animation states
 	STATE_EATING,
 	STATE_HAPPY_JUMP,
+	STATE_NO_THANKS,
 };
 extern enum game_state vpet_state;
 void vpet_refresh_screen();
 void vpet_switch_state(enum game_state new_state);
 void vpet_draw_pet_animation();
+void vpet_draw_pet_animation_and_clear();
 
 // ------------------------------------------------------------
 
@@ -371,6 +379,7 @@ struct food_info {
 	uint32_t add_belly;
 	uint32_t add_happy;
 	uint32_t add_heavy;
+	int32_t messiness;
 	uint32_t flags;
 	char name[12+1];
 };
@@ -378,6 +387,7 @@ struct food_info {
 enum food_flags {
 	FOOD_IS_MEAL  = 0x0001,
 	FOOD_IS_SNACK = 0x0002,
+	FOOD_DONT_EAT_PLATE = 0x0004,
 
 	FOOD_CATEGORY_MASK    = 0x0f00,
 	FOOD_CATEGORY_GRAINS  = 0x0100,
@@ -388,3 +398,4 @@ enum food_flags {
 	FOOD_CATEGORY_FROZEN  = 0x0600,
 	FOOD_CATEGORY_DRINK   = 0x0700,
 };
+extern const struct food_info food_infos[];
