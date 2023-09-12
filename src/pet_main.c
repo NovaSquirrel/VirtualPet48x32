@@ -414,7 +414,7 @@ void vpet_tick_button_press() {
 				add_to_pet_stat(STAT_BELLY, food_infos[pet_food_to_eat].add_belly);
 				add_to_pet_stat(STAT_HAPPY, food_infos[pet_food_to_eat].add_happy);
 				add_to_pet_stat(STAT_HEAVY, food_infos[pet_food_to_eat].add_heavy);
-				uint32_t messiness = food_infos[pet_food_to_eat].messiness;
+				int32_t messiness = food_infos[pet_food_to_eat].messiness;
 				if(messiness < 0) {
 					add_to_pet_stat(STAT_CLEAN, -messiness);
 				} else if(my_pet.stats[STAT_CLEAN] > messiness) {
