@@ -52,4 +52,6 @@ void vpet_tick_second() {
 			}
 		}
 	}
+	if(vpet_state == STATE_BATHING)
+		add_to_pet_stat(STAT_CLEAN, MAX_STAT/24);
 }

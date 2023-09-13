@@ -22,6 +22,10 @@
 
 extern const uint16_t heart10_art[];
 extern const uint8_t heart7_art[];
+extern const uint16_t bath_art[];
+extern const uint8_t bath_lines_art[];
+
+void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value);
 
 enum idle_animation {
 	IDLE_ANIM_WANDER, // For STATE_DEFAULT
@@ -91,6 +95,16 @@ void vpet_draw_pet_animation() {
 				}
 			}
 			break;
+		case STATE_BATHING:
+			if(my_pet.stats[STAT_CLEAN] < (MAX_STAT - MAX_STAT/32))
+				vpet_draw_meter(PET_SCREEN_CENTER_X-(4*5+2)/2, 0, 4*5+2, 5, my_pet.stats[STAT_CLEAN], MAX_STAT);
+			vpet_draw_pet_crop(pet_animation_x-16/2, pet_animation_y-16/2, pet_animation_hflip,  my_pet.profile.species, pet_animation_frame, 13);
+			vpet_sprite_16(PET_SCREEN_CENTER_X - 8, PET_SCREEN_CENTER_Y + 4, 0, 8, bath_art, vpet_or_8_pixels);
+
+			vpet_sprite_8(PET_SCREEN_CENTER_X-4-12, PET_SCREEN_CENTER_Y-8, pet_animation_timer&1, 9, bath_lines_art, vpet_or_8_pixels);
+			vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-8, (pet_animation_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
+
+			return;
 		default:
 			break;
 	}
@@ -221,6 +235,18 @@ void vpet_tick_animation() {
 				return;
 			}
 			pet_animation_hflip ^= 1;
+			goto draw_animation_frame;
+
+		case STATE_BATHING:
+			if(pet_animation_timer % 2 == 0) {
+				if(pet_animation_frame == CF_IDLE) {
+					pet_animation_frame = CF_HAPPY;
+					pet_animation_y--;
+				} else if(pet_animation_frame == CF_HAPPY) {
+					pet_animation_frame = CF_IDLE;
+					pet_animation_y++;
+				}
+			}
 			goto draw_animation_frame;
 
 		case STATE_BRUSHING:

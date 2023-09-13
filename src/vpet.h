@@ -183,7 +183,7 @@ struct vpet_status {
 
 extern struct vpet_status my_pet;
 
-void vpet_tick();
+void add_to_pet_stat(int which_stat, int value);
 
 // ------------------------------------------------------------
 

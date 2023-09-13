@@ -441,7 +441,7 @@ void vpet_tick_button_press() {
 
 		case STATE_BRUSHING:
 			if(key_new & (KEY_A|KEY_LEFT|KEY_DOWN|KEY_UP|KEY_RIGHT)) {
-				add_to_pet_stat(STAT_HAPPY, MAX_STAT/24);
+				add_to_pet_stat(STAT_HAPPY, MAX_STAT/32);
 				add_to_pet_stat(STAT_CLEAN, MAX_STAT/12);
 				void vpet_animation_press_brushing();
 				vpet_animation_press_brushing();
