@@ -58,10 +58,6 @@ int main(int argc, char *argv[]) {
 		SDL_MessageBox(SDL_MESSAGEBOX_ERROR, "Error", NULL, "SDL_image could not initialize! SDL_image Error: %s", IMG_GetError());
 		return -1;
 	}
-	if( TTF_Init() == -1 ) {
-		SDL_MessageBox(SDL_MESSAGEBOX_ERROR, "Error", NULL, "SDL_ttf could not initialize! SDL_ttf Error: %s", TTF_GetError());
-		return -1;
-	}
 	ScreenRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	// ------------------------------------------------------
 
