@@ -221,6 +221,10 @@ void vpet_tick_animation() {
 			case IDLE_ANIM_POOP:
 				if(my_pet.pooping_timer == 1)
 					pet_animation_frame = CF_EATING2;
+				else if((pet_animation_timer & 1) ^ pet_animation_hflip)
+					pet_animation_x--;
+				else
+					pet_animation_x++;
 				goto draw_animation_frame;
 			default:
 				break;

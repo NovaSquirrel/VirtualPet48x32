@@ -268,6 +268,7 @@ void vpet_refresh_screen() {
 		case STATE_EATING:
 		case STATE_DEFAULT:
 		case STATE_NO_THANKS:
+		case STATE_HAPPY_JUMP:
 			vpet_draw_pet_animation();
 			break;
 
@@ -336,10 +337,6 @@ void vpet_tick_button_press() {
 					my_pet.poops = 0;
 					vpet_set_idle_animation(IDLE_ANIM_WANDER);
 					vpet_switch_state(STATE_HAPPY_JUMP);
-
-					// TODO: this is here to avoid a frame where they're invisible; figure out a proper solution
-					void vpet_tick_animation();
-					vpet_tick_animation();
 					return;
 				}
 
