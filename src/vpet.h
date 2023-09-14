@@ -178,11 +178,25 @@ struct vpet_status {
 
 	// Like gratitude points in DQB2 but you don't spend them?
 	unsigned int gratitude;
+
+	// Status information
+	unsigned int pooping_timer;
+	unsigned int poops;
 };
 
 extern struct vpet_status my_pet;
 
 void add_to_pet_stat(int which_stat, int value);
+
+// ------------------------------------------------------------
+
+enum idle_animation {
+	IDLE_ANIM_WANDER, // For STATE_DEFAULT
+	IDLE_ANIM_POOP,
+};
+
+extern enum idle_animation current_idle_animation;
+void vpet_set_idle_animation(enum idle_animation new_idle_animation);
 
 // ------------------------------------------------------------
 

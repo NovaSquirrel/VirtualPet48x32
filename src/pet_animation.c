@@ -24,12 +24,9 @@ extern const uint16_t heart10_art[];
 extern const uint8_t heart7_art[];
 extern const uint16_t bath_art[];
 extern const uint8_t bath_lines_art[];
+extern const uint8_t poop_art[];
 
 void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value);
-
-enum idle_animation {
-	IDLE_ANIM_WANDER, // For STATE_DEFAULT
-};
 
 enum idle_animation current_idle_animation;
 unsigned int pet_animation_timer;
@@ -49,16 +46,16 @@ int intclamp(int a, int min, int max) {
 }
 
 void init_animation_for_state(enum game_state new_state) {
-	pet_animation_timer = 0;
 	pet_animation_frame = CF_IDLE;
 	pet_animation_hflip = 0;
 	pet_animation_x = PET_SCREEN_CENTER_X;
 	pet_animation_y = PET_SCREEN_CENTER_Y;
 	pet_animation_react_timer = 0;
+	pet_animation_timer = 0;
 
 	switch(new_state) {
 		case STATE_DEFAULT:;
-			current_idle_animation = IDLE_ANIM_WANDER;
+			vpet_set_idle_animation(current_idle_animation); // Re-set the idle animation
 			pet_animation_target_x = PET_SCREEN_CENTER_X;
 			pet_animation_target_y = PET_SCREEN_CENTER_Y;
 			break;
@@ -73,6 +70,21 @@ void init_animation_for_state(enum game_state new_state) {
 			break;
 
 		default:
+			break;
+	}
+}
+
+void vpet_set_idle_animation(enum idle_animation new_idle_animation) {
+	current_idle_animation = new_idle_animation;
+
+	switch(new_idle_animation) {
+		default:
+			pet_animation_frame = CF_IDLE;
+			break;
+		case IDLE_ANIM_POOP:
+			pet_animation_frame = CF_NO_THANKS;
+			pet_animation_x = PET_SCREEN_CENTER_X;
+			pet_animation_y = PET_SCREEN_CENTER_Y;
 			break;
 	}
 }
@@ -105,6 +117,15 @@ void vpet_draw_pet_animation() {
 			vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-8, (pet_animation_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
 
 			return;
+		case STATE_DEFAULT:
+			if(my_pet.poops) {
+				for(int i=0; i<my_pet.poops; i++) {
+					vpet_sprite_8((i&1) ? 0 : PET_SCREEN_W-7, PET_SCREEN_H-8-((i/2)*8), 0, 7, &poop_art[(pet_animation_timer&1)*7], vpet_or_8_pixels);
+				}
+			}
+			if(my_pet.pooping_timer == 1)
+				vpet_sprite_8(pet_animation_x + (pet_animation_hflip ? -12-4 : 12-4), pet_animation_y+1, 0, 7, poop_art, vpet_or_8_pixels);
+			break;
 		default:
 			break;
 	}
@@ -122,6 +143,11 @@ void vpet_draw_pet_animation() {
 			break;
 		default:
 			break;
+	}
+
+	if(my_pet.pooping_timer > 1) {
+		vpet_sprite_8(PET_SCREEN_CENTER_X-4-12, PET_SCREEN_CENTER_Y-2, my_pet.pooping_timer&1, 9, bath_lines_art, vpet_or_8_pixels);
+		vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-2, (my_pet.pooping_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
 	}
 }
 
@@ -147,50 +173,62 @@ const struct per_character_animation_params character_anim_params[] = {
 void vpet_tick_animation() {
 	const struct per_character_animation_params *animation_params = &character_anim_params[my_pet.profile.species];
 
-	switch(vpet_state) {
-		case STATE_DEFAULT:
-			if(!Random(animation_params->jump_chance) && pet_animation_frame != CF_JUMP) { // Jump sometimes
-				pet_animation_frame = CF_JUMP;
-				pet_animation_y -= HAPPY_JUMP_HEIGHT; // Jump up
-				goto draw_animation_frame;
-			}
-			if(pet_animation_frame == CF_JUMP) {
-				pet_animation_y += HAPPY_JUMP_HEIGHT; // Fall back down
+	if(vpet_state == STATE_DEFAULT) {
+		switch(current_idle_animation) {
+			case IDLE_ANIM_WANDER:
+				if(!Random(animation_params->jump_chance) && pet_animation_frame != CF_JUMP) { // Jump sometimes
+					pet_animation_frame = CF_JUMP;
+					pet_animation_y -= HAPPY_JUMP_HEIGHT; // Jump up
+					goto draw_animation_frame;
+				}
+				if(pet_animation_frame == CF_JUMP) {
+					pet_animation_y += HAPPY_JUMP_HEIGHT; // Fall back down
+					pet_animation_frame = CF_IDLE;
+					goto draw_animation_frame;
+				}
+
 				pet_animation_frame = CF_IDLE;
+				if(!Random(animation_params->second_frame_chance)) { // Use the other animation frame
+					pet_animation_frame = CF_IDLE2;
+				}
+				if(!Random(animation_params->flip_chance)) { // Flip
+					pet_animation_hflip ^= 1;
+				}
+				if(!Random(2)) { // Move
+					if(pet_animation_target_x > pet_animation_x) {
+						pet_animation_x += Random(4) + 1;
+						if(animation_params->flip_when_moving)
+							pet_animation_hflip = 1;
+					} else {
+						pet_animation_x -= Random(4) + 1;
+						if(animation_params->flip_when_moving)
+							pet_animation_hflip = 0;
+					}
+					pet_animation_x = intclamp(pet_animation_x, 9, PET_SCREEN_W-9);
+
+					if(pet_animation_target_y > pet_animation_y) {
+						pet_animation_y += Random(2);
+					} else {
+						pet_animation_y -= Random(2);
+					}
+					pet_animation_y = intclamp(pet_animation_y, 10, PET_SCREEN_H-10);
+				}
+
+				if((pet_animation_timer & 15) == 0) {
+					pet_animation_target_x = RandomMinMax(9, PET_SCREEN_W-9);
+					pet_animation_target_y = RandomMinMax(10, PET_SCREEN_H-10);
+				}
 				goto draw_animation_frame;
-			}
+			case IDLE_ANIM_POOP:
+				if(my_pet.pooping_timer == 1)
+					pet_animation_frame = CF_EATING2;
+				goto draw_animation_frame;
+			default:
+				break;
+		}
+	}
 
-			pet_animation_frame = CF_IDLE;
-			if(!Random(animation_params->second_frame_chance)) { // Use the other animation frame
-				pet_animation_frame = CF_IDLE2;
-			}
-			if(!Random(animation_params->flip_chance)) { // Flip
-				pet_animation_hflip ^= 1;
-			}
-			if(!Random(2)) { // Move
-				if(pet_animation_target_x > pet_animation_x) {
-					pet_animation_x += Random(4) + 1;
-					if(animation_params->flip_when_moving)
-						pet_animation_hflip = 1;
-				} else {
-					pet_animation_x -= Random(4) + 1;
-					if(animation_params->flip_when_moving)
-						pet_animation_hflip = 0;
-				}
-				pet_animation_x = intclamp(pet_animation_x, 9, PET_SCREEN_W-9);
-
-				if(pet_animation_target_y > pet_animation_y) {
-					pet_animation_y += Random(2);
-				} else {
-					pet_animation_y -= Random(2);
-				}
-				pet_animation_y = intclamp(pet_animation_y, 10, PET_SCREEN_H-10);
-			}
-
-			if((pet_animation_timer & 15) == 0) {
-				pet_animation_target_x = RandomMinMax(9, PET_SCREEN_W-9);
-				pet_animation_target_y = RandomMinMax(10, PET_SCREEN_H-10);
-			}
+	switch(vpet_state) {
 		draw_animation_frame:
 			vpet_clear_screen();
 			vpet_draw_pet_animation();

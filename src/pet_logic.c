@@ -42,6 +42,9 @@ void vpet_tick_second() {
 					break;
 
 				case STAT_POOP:
+					my_pet.stats[STAT_POOP] = MAX_STAT;
+					my_pet.pooping_timer = 10;
+					vpet_set_idle_animation(IDLE_ANIM_POOP);
 					break;
 				case STAT_ATTENTION:
 					break;
@@ -52,6 +55,15 @@ void vpet_tick_second() {
 			}
 		}
 	}
+	if(my_pet.pooping_timer) {
+		my_pet.pooping_timer--;
+		if(!my_pet.pooping_timer) {
+			my_pet.poops++;
+			vpet_set_idle_animation(IDLE_ANIM_WANDER);
+		}
+	}
 	if(vpet_state == STATE_BATHING)
 		add_to_pet_stat(STAT_CLEAN, MAX_STAT/24);
+	if(vpet_state == STATE_STATUS) // Show the updated stats
+		vpet_refresh_screen();
 }

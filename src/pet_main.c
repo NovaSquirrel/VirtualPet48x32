@@ -62,25 +62,34 @@ void vpet_init() {
 	time(&my_pet.profile.created_at);
 	strcpy(my_pet.profile.name, "Pyonkotchi");
 
-	my_pet.stats[STAT_BELLY] = 0; //MAX_STAT;
-	my_pet.stats[STAT_HAPPY] = 0; //MAX_STAT/2;
-	my_pet.stats[STAT_CLEAN] = 0; //MAX_STAT;
+	my_pet.stats[STAT_BELLY] =          0; //MAX_STAT;
+	my_pet.stats[STAT_HAPPY] =          0; //MAX_STAT;
+	my_pet.stats[STAT_CLEAN] =          0; //MAX_STAT;
+	my_pet.stat_drop_rate[STAT_BELLY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
+	my_pet.stat_drop_rate[STAT_HAPPY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
+	my_pet.stat_drop_rate[STAT_CLEAN] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
 
-	my_pet.stats[STAT_POOP]           = MAX_STAT;
-	my_pet.stats[STAT_ATTENTION]      = MAX_STAT;
-	my_pet.stats[STAT_COMMON_EVENT]   = MAX_STAT;
-	my_pet.stats[STAT_UNCOMMON_EVENT] = MAX_STAT;
+	my_pet.stats[STAT_POOP]                    = MAX_STAT;
+	my_pet.stats[STAT_ATTENTION]               = MAX_STAT;
+	my_pet.stats[STAT_COMMON_EVENT]            = MAX_STAT;
+	my_pet.stats[STAT_UNCOMMON_EVENT]          = MAX_STAT;
+	my_pet.stat_drop_rate[STAT_POOP]           = MAX_STAT / RandomMinMax(60*160, 60*200); // P1 uses 180 minutes, or 25 for babies
+	my_pet.stat_drop_rate[STAT_ATTENTION]      = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
+	my_pet.stat_drop_rate[STAT_COMMON_EVENT]   = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
+	my_pet.stat_drop_rate[STAT_UNCOMMON_EVENT] = MAX_STAT / RandomMinMax(60*60*5, 60*60*10);
 
 	memset(food_inventory, 99, sizeof(food_inventory));
 	memset(food_inventory, 255, 8);
 
+	vpet_set_idle_animation(IDLE_ANIM_WANDER);
 	void vpet_switch_state(enum game_state new_state);
 	vpet_switch_state(STATE_DEFAULT);
 }
 
 void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value) {
 	vpet_rect(x, y, w, h);
-	vpet_rectfill(x+1, y+1, value/(max_value/(w-2)), h-2);
+	int per_pixel = max_value/(w-2);
+	vpet_rectfill(x+1, y+1, (value+(per_pixel/2))/per_pixel, h-2);
 }
 
 
@@ -320,6 +329,20 @@ void vpet_tick_button_press() {
 			move_through_menu(8, STATE_DEFAULT, 0);
 			if(key_new & KEY_A) {
 				static const enum game_state new_state[] = {STATE_STATUS, STATE_FEED_MENU, STATE_PLAY_MENU, STATE_CLEAN_MENU, STATE_TRAVEL_MENU, STATE_RECORDS_MENU, STATE_OPTIONS_MENU, STATE_PAUSED};
+				if(menu_cursor == 3 && (my_pet.pooping_timer || my_pet.poops)) {
+					if(my_pet.pooping_timer)
+						add_to_pet_stat(STAT_HAPPY, MAX_STAT / 4);
+					my_pet.pooping_timer = 0;
+					my_pet.poops = 0;
+					vpet_set_idle_animation(IDLE_ANIM_WANDER);
+					vpet_switch_state(STATE_HAPPY_JUMP);
+
+					// TODO: this is here to avoid a frame where they're invisible; figure out a proper solution
+					void vpet_tick_animation();
+					vpet_tick_animation();
+					return;
+				}
+
 				vpet_switch_state(new_state[menu_cursor]);
 			}
 			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
