@@ -55,7 +55,7 @@ void vpet_tick_second() {
 			}
 		}
 	}
-	if(my_pet.pooping_timer) {
+	if(my_pet.pooping_timer && vpet_state == STATE_DEFAULT) {
 		my_pet.pooping_timer--;
 		if(!my_pet.pooping_timer) {
 			my_pet.poops++;

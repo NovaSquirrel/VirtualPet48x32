@@ -125,6 +125,10 @@ void vpet_draw_pet_animation() {
 			}
 			if(my_pet.pooping_timer == 1)
 				vpet_sprite_8(pet_animation_x + (pet_animation_hflip ? -12-4 : 12-4), pet_animation_y+1, 0, 7, poop_art, vpet_or_8_pixels);
+			if(my_pet.pooping_timer > 1) {
+				vpet_sprite_8(PET_SCREEN_CENTER_X-4-12, PET_SCREEN_CENTER_Y-2, my_pet.pooping_timer&1, 9, bath_lines_art, vpet_or_8_pixels);
+				vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-2, (my_pet.pooping_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
+			}
 			break;
 		default:
 			break;
@@ -143,11 +147,6 @@ void vpet_draw_pet_animation() {
 			break;
 		default:
 			break;
-	}
-
-	if(my_pet.pooping_timer > 1) {
-		vpet_sprite_8(PET_SCREEN_CENTER_X-4-12, PET_SCREEN_CENTER_Y-2, my_pet.pooping_timer&1, 9, bath_lines_art, vpet_or_8_pixels);
-		vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-2, (my_pet.pooping_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
 	}
 }
 
