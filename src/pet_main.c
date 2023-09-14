@@ -21,7 +21,7 @@
 
 // Virtual pet game variables
 struct vpet_status my_pet;
-int my_currency = 12345;
+int my_currency = 0;
 uint8_t food_inventory[MAX_FOOD_INVENTORY_SLOTS] = {0};
 
 uint8_t filtered_menu_options[MAX_FOOD_INVENTORY_SLOTS];
@@ -319,6 +319,16 @@ void add_to_pet_stat(int which_stat, int value) {
 		my_pet.stats[which_stat] = MAX_STAT;
 }
 
+void sub_from_pet_stat(int which_stat, int value) {
+	if(!my_pet.stats[which_stat])
+		return;
+	if(my_pet.stats[which_stat] <= value) {
+		my_pet.stats[which_stat] = 1;
+		return;
+	}
+	my_pet.stats[which_stat] -= value;
+}
+
 // Tick because of a button press
 void vpet_tick_button_press() {
 	switch(vpet_state) {
@@ -441,10 +451,8 @@ void vpet_tick_button_press() {
 				int32_t messiness = food_infos[pet_food_to_eat].messiness;
 				if(messiness < 0) {
 					add_to_pet_stat(STAT_CLEAN, -messiness);
-				} else if(my_pet.stats[STAT_CLEAN] > messiness) {
-					my_pet.stats[STAT_CLEAN] -= messiness; 
-				} else if(my_pet.stats[STAT_CLEAN]) {
-					my_pet.stats[STAT_CLEAN] = 1; // Lower to zero soon and trigger the event or hitting zero
+				} else {
+					sub_from_pet_stat(STAT_CLEAN, messiness);
 				}
 				vpet_switch_state(STATE_EATING);
 			}

@@ -187,6 +187,7 @@ struct vpet_status {
 extern struct vpet_status my_pet;
 
 void add_to_pet_stat(int which_stat, int value);
+void sub_from_pet_stat(int which_stat, int value);
 
 // ------------------------------------------------------------
 

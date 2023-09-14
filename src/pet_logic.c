@@ -21,6 +21,10 @@
 // Runs every second. Handles the logic that causes events to happen and causes stats to change over time.
 void vpet_tick_second() {
 	my_pet.seconds++;
+
+	if(my_pet.poops) // If there's poop, cleanliness drops faster
+		sub_from_pet_stat(STAT_CLEAN, my_pet.stat_drop_rate[STAT_CLEAN]*my_pet.poops);
+
 	for(int stat=0; stat<STAT_COUNT; stat++) {
 		// Decrease each stat according to its rate (which maybe zero)
 		int value = my_pet.stats[stat];
@@ -59,6 +63,7 @@ void vpet_tick_second() {
 		my_pet.pooping_timer--;
 		if(!my_pet.pooping_timer) {
 			my_pet.poops++;
+			sub_from_pet_stat(STAT_CLEAN, MAX_STAT/6);
 			vpet_set_idle_animation(IDLE_ANIM_WANDER);
 		}
 	}
