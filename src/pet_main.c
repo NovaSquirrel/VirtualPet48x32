@@ -269,6 +269,7 @@ void vpet_refresh_screen() {
 		case STATE_DEFAULT:
 		case STATE_NO_THANKS:
 		case STATE_HAPPY_JUMP:
+		case STATE_ON_TOILET:
 			vpet_draw_pet_animation();
 			break;
 
@@ -331,12 +332,15 @@ void vpet_tick_button_press() {
 			if(key_new & KEY_A) {
 				static const enum game_state new_state[] = {STATE_STATUS, STATE_FEED_MENU, STATE_PLAY_MENU, STATE_CLEAN_MENU, STATE_TRAVEL_MENU, STATE_RECORDS_MENU, STATE_OPTIONS_MENU, STATE_PAUSED};
 				if(menu_cursor == 3 && (my_pet.pooping_timer || my_pet.poops)) {
-					if(my_pet.pooping_timer)
-						add_to_pet_stat(STAT_HAPPY, MAX_STAT / 4);
-					my_pet.pooping_timer = 0;
 					my_pet.poops = 0;
 					vpet_set_idle_animation(IDLE_ANIM_WANDER);
-					vpet_switch_state(STATE_HAPPY_JUMP);
+					if(my_pet.pooping_timer) {
+						add_to_pet_stat(STAT_HAPPY, MAX_STAT / 4);
+						vpet_switch_state(STATE_ON_TOILET);
+					} else {
+						vpet_switch_state(STATE_HAPPY_JUMP);
+					}
+					my_pet.pooping_timer = 0;
 					return;
 				}
 

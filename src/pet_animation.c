@@ -25,6 +25,7 @@ extern const uint8_t heart7_art[];
 extern const uint16_t bath_art[];
 extern const uint8_t bath_lines_art[];
 extern const uint8_t poop_art[];
+extern const uint16_t toilet_art[];
 
 void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value);
 
@@ -67,6 +68,12 @@ void init_animation_for_state(enum game_state new_state) {
 
 		case STATE_NO_THANKS:
 			pet_animation_frame = CF_NO_THANKS;
+			break;
+		case STATE_ON_TOILET:
+			pet_animation_frame = CF_SITTING;
+			pet_animation_hflip = 1;
+			pet_animation_x = PET_SCREEN_CENTER_X + 4;
+			pet_animation_y = PET_SCREEN_CENTER_Y - 8;
 			break;
 
 		default:
@@ -117,6 +124,9 @@ void vpet_draw_pet_animation() {
 			vpet_sprite_8(PET_SCREEN_CENTER_X-4+12, PET_SCREEN_CENTER_Y-8, (pet_animation_timer&1)^1, 9, bath_lines_art, vpet_or_8_pixels);
 
 			return;
+		case STATE_ON_TOILET:
+			vpet_sprite_xor_16(PET_SCREEN_CENTER_X - 16/2, PET_SCREEN_CENTER_Y - 24/2, 0, 24, toilet_art);
+			break;
 		case STATE_DEFAULT:
 			if(my_pet.poops) {
 				for(int i=0; i<my_pet.poops; i++) {
@@ -276,6 +286,15 @@ void vpet_tick_animation() {
 				return;
 			}
 			pet_animation_hflip ^= 1;
+			goto draw_animation_frame;
+
+		case STATE_ON_TOILET:
+			if(pet_animation_timer == 4) {
+				pet_animation_frame = CF_SITTING2;
+			} else if(pet_animation_timer == 6) {
+				vpet_switch_state(STATE_HAPPY_JUMP);
+				return;
+			}
 			goto draw_animation_frame;
 
 		case STATE_BATHING:

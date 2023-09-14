@@ -229,6 +229,7 @@ enum game_state {
 	STATE_EATING,
 	STATE_HAPPY_JUMP,
 	STATE_NO_THANKS,
+	STATE_ON_TOILET,
 };
 extern enum game_state vpet_state;
 void vpet_refresh_screen();
