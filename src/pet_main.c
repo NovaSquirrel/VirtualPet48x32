@@ -32,6 +32,9 @@ int second_ticks = 0; // Ticks up to 59 and then back to zero
 enum game_state vpet_state = STATE_DEFAULT;
 int pet_paused = 0;
 
+// Miscellaneous state things
+int state_variable; // Button to press in STATE_BRUSHING
+
 // Menu options and stuff?
 int menu_cursor = 0;
 int menu_page = 0;
@@ -49,6 +52,17 @@ const uint16_t main_menu_icons[] = {0, 8184, 8196, 17346, 17442, 17442, 16418, 1
 
 // ----------------------------------------------
 
+void vpet_reroll_stat_drop_rates() {
+	my_pet.stat_drop_rate[STAT_BELLY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
+	my_pet.stat_drop_rate[STAT_HAPPY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
+	my_pet.stat_drop_rate[STAT_CLEAN] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
+
+	my_pet.stat_drop_rate[STAT_POOP]           = MAX_STAT / RandomMinMax(60*160, 60*200); // P1 uses 180 minutes, or 25 for babies
+	my_pet.stat_drop_rate[STAT_ATTENTION]      = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
+	my_pet.stat_drop_rate[STAT_COMMON_EVENT]   = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
+	my_pet.stat_drop_rate[STAT_UNCOMMON_EVENT] = MAX_STAT / RandomMinMax(60*60*5, 60*60*10);
+}
+
 void vpet_init() {
 	// Set up a virtual pet
 	memset(&my_pet, 0, sizeof(my_pet));
@@ -65,18 +79,11 @@ void vpet_init() {
 	my_pet.stats[STAT_BELLY] =          0; //MAX_STAT;
 	my_pet.stats[STAT_HAPPY] =          0; //MAX_STAT;
 	my_pet.stats[STAT_CLEAN] =          0; //MAX_STAT;
-	my_pet.stat_drop_rate[STAT_BELLY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
-	my_pet.stat_drop_rate[STAT_HAPPY] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
-	my_pet.stat_drop_rate[STAT_CLEAN] = MAX_STAT / RandomMinMax(4*60*50, 4*60*100);
-
-	my_pet.stats[STAT_POOP]                    = MAX_STAT;
-	my_pet.stats[STAT_ATTENTION]               = MAX_STAT;
-	my_pet.stats[STAT_COMMON_EVENT]            = MAX_STAT;
-	my_pet.stats[STAT_UNCOMMON_EVENT]          = MAX_STAT;
-	my_pet.stat_drop_rate[STAT_POOP]           = MAX_STAT / RandomMinMax(60*160, 60*200); // P1 uses 180 minutes, or 25 for babies
-	my_pet.stat_drop_rate[STAT_ATTENTION]      = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
-	my_pet.stat_drop_rate[STAT_COMMON_EVENT]   = MAX_STAT / RandomMinMax(60*60*3, 60*60*5);
-	my_pet.stat_drop_rate[STAT_UNCOMMON_EVENT] = MAX_STAT / RandomMinMax(60*60*5, 60*60*10);
+	my_pet.stats[STAT_POOP]           = MAX_STAT;
+	my_pet.stats[STAT_ATTENTION]      = MAX_STAT;
+	my_pet.stats[STAT_COMMON_EVENT]   = MAX_STAT;
+	my_pet.stats[STAT_UNCOMMON_EVENT] = MAX_STAT;
+	vpet_reroll_stat_drop_rates();
 
 	memset(food_inventory, 99, sizeof(food_inventory));
 	memset(food_inventory, 255, 8);
@@ -284,6 +291,14 @@ void back_out_of_menu(enum game_state new_state, int new_cursor) {
 	vpet_state = new_state;
 	second_ticks = 0;
 
+	switch(new_state) {
+		case STATE_BRUSHING:
+			state_variable = Random(5);
+			break;
+		default:
+			break;
+	}
+
 	void init_animation_for_state(enum game_state state);
 	init_animation_for_state(new_state);
 	vpet_refresh_screen();
@@ -454,6 +469,7 @@ void vpet_tick_button_press() {
 				} else {
 					sub_from_pet_stat(STAT_CLEAN, messiness);
 				}
+				vpet_reroll_stat_drop_rates();
 				vpet_switch_state(STATE_EATING);
 			}
 			move_through_menu_generic(&menu_cursor, filtered_menu_option_count, KEY_LEFT, KEY_RIGHT, 1, STATE_FEED_MENU, menu_option);
@@ -473,11 +489,14 @@ void vpet_tick_button_press() {
 
 		case STATE_BRUSHING:
 			if(key_new & (KEY_A|KEY_LEFT|KEY_DOWN|KEY_UP|KEY_RIGHT)) {
-				add_to_pet_stat(STAT_HAPPY, MAX_STAT/32);
-				add_to_pet_stat(STAT_CLEAN, MAX_STAT/12);
-				void vpet_animation_press_brushing();
-				vpet_animation_press_brushing();
-				vpet_draw_pet_animation_and_clear();
+				if(key_new & (1 << state_variable)) {
+					add_to_pet_stat(STAT_HAPPY, MAX_STAT/32);
+					add_to_pet_stat(STAT_CLEAN, MAX_STAT/16);
+					void vpet_animation_press_brushing();
+					vpet_animation_press_brushing();
+					state_variable = Random(5);
+					vpet_draw_pet_animation_and_clear();
+				}
 			}
 			if(key_new & KEY_B)
 				vpet_switch_state(STATE_DEFAULT);

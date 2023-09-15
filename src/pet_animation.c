@@ -26,6 +26,8 @@ extern const uint16_t bath_art[];
 extern const uint8_t bath_lines_art[];
 extern const uint8_t poop_art[];
 extern const uint16_t toilet_art[];
+extern const uint16_t button_icon16_art[];
+extern const uint8_t button_icon8_art[];
 
 void vpet_draw_meter(int x, int y, int w, int h, unsigned int value, unsigned int max_value);
 
@@ -100,6 +102,25 @@ void vpet_draw_pet_animation() {
 	// Draw under
 	switch(vpet_state) {
 		case STATE_BRUSHING:
+			if(my_pet.stats[STAT_CLEAN] < (MAX_STAT - MAX_STAT/32)) {
+				vpet_draw_meter(PET_SCREEN_CENTER_X-(4*5+2)/2, PET_SCREEN_H-5, 4*5+2, 5, my_pet.stats[STAT_CLEAN], MAX_STAT);
+			} else {
+				vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, "B to stop");
+			}
+			if(pet_animation_react_timer) {
+				if(Random(2)) {
+					for(int i=0; i<4; i++) {
+						vpet_sprite_16(i*12, RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 4, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
+					}
+				} else {
+					for(int i=0; i<6; i++) {
+						vpet_sprite_8(i*8, RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 4, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
+					}
+				}
+			}
+			vpet_sprite_8(PET_SCREEN_CENTER_X -8/2, 0, 0, 8, &button_icon8_art[state_variable*8], vpet_or_8_pixels);
+			break;
+
 		case STATE_PETTING:
 			vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, "B to stop");
 			if(pet_animation_react_timer) {
@@ -333,7 +354,7 @@ void vpet_tick_animation() {
 // ----------------------------------------------------------------------------
 
 void vpet_animation_press_brushing() {
-	pet_animation_react_timer = 1;
+	pet_animation_react_timer = 3;
 	pet_animation_frame = CF_HAPPY;
 }
 

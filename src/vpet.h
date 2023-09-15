@@ -233,6 +233,8 @@ enum game_state {
 	STATE_ON_TOILET,
 };
 extern enum game_state vpet_state;
+extern int state_variable;
+
 void vpet_refresh_screen();
 void vpet_switch_state(enum game_state new_state);
 void vpet_draw_pet_animation();
