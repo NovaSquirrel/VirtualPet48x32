@@ -240,7 +240,7 @@ void vpet_refresh_screen() {
 		case STATE_PAUSED:
 			pet_paused = 1;
 			vpet_draw_text(PET_SCREEN_CENTER_X - 2*6, 2, "Paused");
-			vpet_draw_text(PET_SCREEN_CENTER_X - 2*9, 2+6, "Press A+B");
+			vpet_draw_text(PET_SCREEN_CENTER_X - 2*9, 2+6, "Press " KEY_NAME_A "+" KEY_NAME_B);
 			vpet_draw_pet(PET_SCREEN_CENTER_X-16/2, 14, 0,  my_pet.profile.species, CF_IDLE);
 			break;
 
@@ -329,7 +329,7 @@ void move_through_menu_generic(int *value, int item_count, uint16_t keys_back, u
 }
 
 void move_through_menu(int item_count, enum game_state exit_state, int exit_cursor) {
-	move_through_menu_generic(&menu_cursor, item_count, KEY_UP, KEY_DOWN, 1, exit_state, exit_cursor);
+	move_through_menu_generic(&menu_cursor, item_count, KEY_UP_PREV, KEY_DOWN_NEXT, 1, exit_state, exit_cursor);
 }
 
 void add_to_pet_stat(int which_stat, int value) {
@@ -375,7 +375,7 @@ void vpet_tick_button_press() {
 
 				vpet_switch_state(new_state[menu_cursor]);
 			}
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
@@ -387,7 +387,7 @@ void vpet_tick_button_press() {
 			break;
 
 		case STATE_STATUS:
-			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT, KEY_RIGHT|KEY_A, 0, STATE_MAIN_MENU, 0);
+			move_through_menu_generic(&menu_cursor, 5, KEY_LEFT_PREV, KEY_RIGHT_NEXT|KEY_A, 0, STATE_MAIN_MENU, 0);
 			if(key_new)
 				vpet_refresh_screen();
 			break;
@@ -412,7 +412,7 @@ void vpet_tick_button_press() {
 					vpet_switch_state(STATE_WHICH_FOOD);
 				}
 			}
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
@@ -422,7 +422,7 @@ void vpet_tick_button_press() {
 				static const enum game_state new_state[] = {STATE_WHICH_GAME, STATE_WHICH_ITEM, STATE_PETTING, STATE_EXPLORE};
 				vpet_switch_state(new_state[menu_cursor]);
 			}
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
@@ -432,25 +432,25 @@ void vpet_tick_button_press() {
 				static const enum game_state new_state[] = {STATE_BRUSHING, STATE_BATHING};
 				vpet_switch_state(new_state[menu_cursor]);
 			}
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
 		case STATE_TRAVEL_MENU:
 			move_through_menu(8, STATE_MAIN_MENU, 4);
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
 		case STATE_RECORDS_MENU:
 			move_through_menu(4, STATE_MAIN_MENU, 5);
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
 		case STATE_OPTIONS_MENU:
 			move_through_menu(4, STATE_MAIN_MENU, 6);
-			if(key_new_or_repeat & (KEY_UP | KEY_DOWN))
+			if(key_new_or_repeat & KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
 			break;
 
@@ -476,8 +476,8 @@ void vpet_tick_button_press() {
 				vpet_reroll_stat_drop_rates();
 				vpet_switch_state(STATE_EATING);
 			}
-			move_through_menu_generic(&menu_cursor, filtered_menu_option_count, KEY_LEFT, KEY_RIGHT, 1, STATE_FEED_MENU, menu_option);
-			if(key_new_or_repeat & (KEY_LEFT | KEY_RIGHT))
+			move_through_menu_generic(&menu_cursor, filtered_menu_option_count, KEY_LEFT_PREV, KEY_RIGHT_NEXT, 1, STATE_FEED_MENU, menu_option);
+			if(key_new_or_repeat & (KEY_LEFT_RIGHT_PREV_NEXT))
 				vpet_refresh_screen();
 			break;
 

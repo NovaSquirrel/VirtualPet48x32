@@ -90,13 +90,13 @@ int get_buffered_key_new(uint16_t key) {
 }
 
 void vpet_minigame_walk_lr(int bound_l, int bound_r) {
-	if(key_down & KEY_LEFT) {
+	if(key_down & KEY_LEFT_PREV) {
 		minigame_pet_draw_x--;
 		if(minigame_pet_draw_x < bound_l)
 			minigame_pet_draw_x = bound_l;
 		minigame_pet_hflip = 0;
 	}
-	if(key_down & KEY_RIGHT) {
+	if(key_down & KEY_RIGHT_NEXT) {
 		minigame_pet_draw_x++;
 		if(minigame_pet_draw_x > bound_r)
 			minigame_pet_draw_x = bound_r;

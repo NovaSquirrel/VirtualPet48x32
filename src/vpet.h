@@ -28,6 +28,19 @@
 // Minimal animation
 #define PET_ANIMATION_EPAPER
 
+#define KEY_NAME_A "A"
+#define KEY_NAME_B "B"
+#define KEY_NAME_C "C"
+
+// Game Boy
+#define KEY_LAYOUT_DPAD_AB
+
+// Watchy
+//#define KEY_LAYOUT_QUAD
+
+// Pico GFX Pack
+//#define KEY_LAYOUT_HORIZ_5
+
 // ------------------------------------------------------------
 
 #define MAX_FOOD_INVENTORY_SLOTS FOOD_COUNT
@@ -250,16 +263,22 @@ enum KeyCode {
   KEY_RIGHT = 0x0002,
   KEY_UP    = 0x0004,
   KEY_DOWN  = 0x0008,
-  KEY_A     = 0x0010,
-  KEY_B     = 0x0020,
+  KEY_A     = 0x0010, // Confirm
+  KEY_B     = 0x0020, // Cancel
+  KEY_C     = 0x0040,
 
-  KEY_PREV   = 0x0100,
-  KEY_NEXT   = 0x0200,
-  KEY_OK     = 0x0400,
-  KEY_CANCEL = 0x0800,
+  KEY_PREV  = 0x0100,
+  KEY_NEXT  = 0x0200,
 
-  KEY_RESET = 0x0040,
+  KEY_RESET = 0x8000,
 };
+#define KEY_LEFT_PREV    (KEY_LEFT|KEY_PREV)
+#define KEY_RIGHT_NEXT   (KEY_RIGHT|KEY_NEXT)
+#define KEY_UP_PREV      (KEY_UP|KEY_PREV)
+#define KEY_DOWN_NEXT    (KEY_DOWN|KEY_NEXT)
+#define KEY_LEFT_RIGHT_PREV_NEXT (KEY_LEFT|KEY_RIGHT|KEY_PREV|KEY_NEXT)
+#define KEY_UP_DOWN_PREV_NEXT (KEY_UP|KEY_DOWN|KEY_PREV|KEY_NEXT)
+#define KEY_ANY_DIRECTION (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN|KEY_PREV|KEY_NEXT)
 extern uint16_t key_down, key_new, key_last, key_new_or_repeat;
 
 // ------------------------------------------------------------
