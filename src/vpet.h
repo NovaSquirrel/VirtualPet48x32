@@ -59,7 +59,9 @@ void vpet_set_font(const uint8_t font[], int width, int height);
 void vpet_draw_textf(int x, int y, const char *fmt, ...);
 void vpet_draw_text(int x, int y, const char *buffer);
 void vpet_hline(int x, int y, int width);
+void vpet_hline_or(int x, int y, int width);
 void vpet_vline(int x, int y, int height);
+void vpet_vline_or(int x, int y, int height);
 void vpet_rect(int x, int y, int width, int height);
 void vpet_rectfill(int x, int y, int width, int height);
 void vpet_rectfill_operation(int x, int y, int width, int height, void (*operation)(int, int, uint8_t));
@@ -225,6 +227,7 @@ enum game_state {
 	STATE_BATHING,
 	STATE_PETTING,
 	STATE_EXPLORE,
+	STATE_MINIGAME,
 
 	// Animation states
 	STATE_EATING,
@@ -262,27 +265,57 @@ extern uint16_t key_down, key_new, key_last, key_new_or_repeat;
 // ------------------------------------------------------------
 
 enum entity_state {
-	STATE_NORMAL,
-	STATE_PAUSE,
-	STATE_STUNNED,
-	STATE_ACTIVE,
-	STATE_INIT,
+	E_STATE_NORMAL,
+	E_STATE_PAUSE,
+	E_STATE_STUNNED,
+	E_STATE_ACTIVE,
+	E_STATE_INIT,
+};
+
+enum entity_draw_flags {
+	ENTITY_DRAW_SIZE     = 0x03, // ......ss
+	  ENTITY_DRAW_8      = 0x00,
+	  ENTITY_DRAW_16     = 0x01,
+	  ENTITY_DRAW_24     = 0x02,
+	  ENTITY_DRAW_CUSTOM = 0x03,
+
+	ENTITY_DRAW_COLOR    = 0x0c, // ....cc..
+	  ENTITY_DRAW_XOR    = 0x00,
+	  ENTITY_DRAW_BLACK  = 0x04, // OR
+	  ENTITY_DRAW_WHITE  = 0x08, // AND NOT
+	  ENTITY_DRAW_BOTH   = 0x0c,
+
+	ENTITY_DRAW_ABOVE    = 0x10, // ...a.... - Above the pet
+	ENTITY_NO_CENTERING  = 0x20, // ..n.....
 };
 
 struct entity {
 	int type;
 	enum entity_state state;
 
-	int xpos;
-	int ypos;
+	int draw_x;
+	int draw_y;
 
 	int xspeed;
 	int yspeed;
 
 	int var[4]; // generic variables
 	int timer;
+
+	// ----------
+	unsigned char width;  // For collision
+	unsigned char height; // For collision
+	unsigned char hflip;
+	unsigned char draw_height; // Number of rows to show
+	unsigned char draw_flags;  // Bits from entity_draw_flags
+	union {
+		const uint8_t *art_8;
+		const uint16_t *art_16;
+		const uint32_t *art_24;
+		void (*custom)(int);
+	} frame;
 };
-#define ENTITY_LEN 64
+#define ENTITY_LEN 32
 extern struct entity entities[ENTITY_LEN];
 
 // ------------------------------------------------------------

@@ -291,20 +291,24 @@ void back_out_of_menu(enum game_state new_state, int new_cursor) {
 	vpet_state = new_state;
 	second_ticks = 0;
 
-	switch(new_state) {
-		case STATE_BRUSHING:
-			state_variable = Random(5);
-			break;
-		default:
-			break;
-	}
-
 	void init_animation_for_state(enum game_state state);
 	init_animation_for_state(new_state);
 	vpet_refresh_screen();
 }
 
 void vpet_switch_state(enum game_state new_state) {
+	switch(new_state) {
+		case STATE_BRUSHING:
+			state_variable = Random(5);
+			break;
+		case STATE_MINIGAME:;
+			void vpet_init_minigame();
+			vpet_init_minigame();
+			break;
+		default:
+			break;
+	}
+
 	back_out_of_menu(new_state, 0);
 }
 
@@ -478,6 +482,7 @@ void vpet_tick_button_press() {
 			break;
 
 		case STATE_WHICH_GAME:
+			vpet_switch_state(STATE_MINIGAME);
 			if(key_new & KEY_B)
 				vpet_switch_state(STATE_DEFAULT);
 			break;
@@ -534,6 +539,10 @@ void vpet_tick_button_press() {
 // Tick continuously
 void vpet_tick_60fps() {
 	switch(vpet_state) {
+		case STATE_MINIGAME:;
+			void vpet_tick60fps_minigame();
+			vpet_tick60fps_minigame();
+			break;
 		default:
 			break;
 	}

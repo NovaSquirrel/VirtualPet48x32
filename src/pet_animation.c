@@ -203,6 +203,8 @@ const struct per_character_animation_params character_anim_params[] = {
 void vpet_tick_animation() {
 	const struct per_character_animation_params *animation_params = &character_anim_params[my_pet.profile.species];
 
+	if(vpet_state == STATE_MINIGAME)
+		return;
 	if(vpet_state == STATE_DEFAULT) {
 		switch(current_idle_animation) {
 			case IDLE_ANIM_WANDER:
