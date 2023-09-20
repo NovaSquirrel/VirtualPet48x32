@@ -312,20 +312,19 @@ struct entity {
 	int type;
 	enum entity_state state;
 
-	int draw_x;
-	int draw_y;
-
-	int xspeed;
-	int yspeed;
+	int x;
+	int y;
+	int hspeed;
+	int vspeed;
 
 	int var[4]; // generic variables
 	int timer;
 
 	// ----------
-	unsigned char width;  // For collision
-	unsigned char height; // For collision
+	unsigned char collide_width;
+	unsigned char collide_height;
 	unsigned char hflip;
-	unsigned char draw_height; // Number of rows to show
+	unsigned char art_height; // Number of rows to show
 	unsigned char draw_flags;  // Bits from entity_draw_flags
 	union {
 		const uint8_t *art_8;
@@ -335,6 +334,7 @@ struct entity {
 	} frame;
 };
 #define ENTITY_LEN 32
+#define COORD_SCALE 256
 extern struct entity entities[ENTITY_LEN];
 
 // ------------------------------------------------------------

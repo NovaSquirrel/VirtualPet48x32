@@ -247,7 +247,7 @@ void vpet_refresh_screen() {
 		case STATE_WHICH_FOOD:
 			{
 				int which_food = filtered_menu_options[menu_cursor];
-				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)-4-16-8, 0, filtered_menu_options[wrap_within_limit(menu_cursor-1, filtered_menu_option_count)], 0);
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)-4-16, 0, filtered_menu_options[wrap_within_limit(menu_cursor-1, filtered_menu_option_count)], 0);
 				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2),        0, which_food, 0);
 				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)+4+16,   0, filtered_menu_options[wrap_within_limit(menu_cursor+1, filtered_menu_option_count)], 0);
 				vpet_draw_text(PET_SCREEN_CENTER_X - strlen(food_infos[which_food].name) * 2, 17, food_infos[which_food].name);
