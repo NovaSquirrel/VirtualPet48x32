@@ -246,10 +246,10 @@ void vpet_refresh_screen() {
 
 		case STATE_WHICH_FOOD:
 			{
-				int which_food = filtered_menu_options[menu_cursor];
-				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)-4-16, 0, filtered_menu_options[wrap_within_limit(menu_cursor-1, filtered_menu_option_count)], 0);
+				enum food_id which_food = (enum food_id)filtered_menu_options[menu_cursor];
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)-4-16, 0,   (enum food_id)filtered_menu_options[wrap_within_limit(menu_cursor-1, filtered_menu_option_count)], 0);
 				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2),        0, which_food, 0);
-				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)+4+16,   0, filtered_menu_options[wrap_within_limit(menu_cursor+1, filtered_menu_option_count)], 0);
+				vpet_draw_food(PET_SCREEN_CENTER_X-(16/2)+4+16,   0, (enum food_id)filtered_menu_options[wrap_within_limit(menu_cursor+1, filtered_menu_option_count)], 0);
 				vpet_draw_text(PET_SCREEN_CENTER_X - strlen(food_infos[which_food].name) * 2, 17, food_infos[which_food].name);
 
 				int amount = food_inventory[which_food];
@@ -332,13 +332,13 @@ void move_through_menu(int item_count, enum game_state exit_state, int exit_curs
 	move_through_menu_generic(&menu_cursor, item_count, KEY_UP_PREV, KEY_DOWN_NEXT, 1, exit_state, exit_cursor);
 }
 
-void add_to_pet_stat(int which_stat, int value) {
+void add_to_pet_stat(int which_stat, unsigned int value) {
 	my_pet.stats[which_stat] += value;
 	if(my_pet.stats[which_stat] > MAX_STAT)
 		my_pet.stats[which_stat] = MAX_STAT;
 }
 
-void sub_from_pet_stat(int which_stat, int value) {
+void sub_from_pet_stat(int which_stat, unsigned int value) {
 	if(!my_pet.stats[which_stat])
 		return;
 	if(my_pet.stats[which_stat] <= value) {
@@ -396,7 +396,7 @@ void vpet_tick_button_press() {
 			move_through_menu(8, STATE_MAIN_MENU, 1);
 			if(key_new & KEY_A) {
 
-				int category_id = ((menu_cursor+1) & 7) << 8;
+				unsigned int category_id = ((menu_cursor+1) & 7) << 8;
 				filtered_menu_option_count = 0;
 				for(int i=0; i<MAX_FOOD_INVENTORY_SLOTS; i++) {
 					if(!food_inventory[i])
@@ -456,7 +456,7 @@ void vpet_tick_button_press() {
 
 		case STATE_WHICH_FOOD:
 			if(key_new & KEY_A) {
-				pet_food_to_eat = filtered_menu_options[menu_cursor];
+				pet_food_to_eat = (enum food_id)filtered_menu_options[menu_cursor];
 				if((unsigned)(my_pet.stats[STAT_BELLY] + food_infos[pet_food_to_eat].add_belly) >= ((unsigned)MAX_STAT + (unsigned)MAX_STAT/8)) {
 					vpet_switch_state(STATE_NO_THANKS);
 					break;

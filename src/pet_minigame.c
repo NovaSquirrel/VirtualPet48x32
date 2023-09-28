@@ -38,11 +38,17 @@ enum minigame_id {
 	MINIGAME_REVERSI,
 	MINIGAME_GET_NOTES,
 	MINIGAME_SHOOT,
-	MINIGAME_BALLOON_THROW,
+	MINIGAME_BALLOON_THROW_4,
+	MINIGAME_BALLOON_THROW_6,
 	MINIGAME_KNUCKLES,
 	MINIGAME_BOUNCE_UP, // climb by bouncing on things in the air
 	MINIGAME_JUMP_UP,   // climb by jumping
 	MINIGAME_FALL_DOWN,
+	MINIGAME_FOOTBALL, // From Pix
+	MINIGAME_TIMED_JUMP,
+	MINIGAME_BOWLING,
+	MINIGAME_OSUMESU, // Flag game
+	MINIGAME_BUS_DRIVING, // From v4
 };
 enum minigame_id which_minigame = MINIGAME_HEADING;
 
@@ -111,7 +117,7 @@ void vpet_minigame_walk_lr(int bound_l, int bound_r) {
 void vpet_minigame_set_frame_for_walk() {
 	minigame_pet_frame = CF_IDLE;
 	if(key_down & (KEY_LEFT | KEY_RIGHT)) {
-		minigame_pet_frame = CF_RUNNING + ((vpet_minigame_ticks/8) & 1);
+		minigame_pet_frame = (enum character_frame)(CF_RUNNING + ((vpet_minigame_ticks/8) & 1));
 	}
 	if(!minigame_pet_on_ground)
 		minigame_pet_frame = CF_JUMP;

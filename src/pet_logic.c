@@ -27,7 +27,7 @@ void vpet_tick_second() {
 
 	for(int stat=0; stat<STAT_COUNT; stat++) {
 		// Decrease each stat according to its rate (which maybe zero)
-		int value = my_pet.stats[stat];
+		unsigned int value = my_pet.stats[stat];
 		if(!value)
 			continue;
 		if(value >= my_pet.stat_drop_rate[stat])

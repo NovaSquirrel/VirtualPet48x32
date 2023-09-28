@@ -111,6 +111,7 @@ void vpet_vline_or(int x, int y, int height) {
 	vpet_rectfill_operation(x, y, 1, height, vpet_or_8_pixels);
 }
 
+#ifdef PLATFORM_PC
 void vpet_render_screen() {
 	for(int y=0; y<PET_SCREEN_H; y++) {
 		for(int x=0; x<PET_SCREEN_W/8; x++) {
@@ -136,6 +137,7 @@ void vpet_render_screen() {
 		}
 	}
 }
+#endif
 
 // ----------------------------------------------
 
@@ -183,7 +185,7 @@ uint32_t reverse24(uint32_t w) {
 
 // ----------------------------------------------
 
-void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*operation)(int, int, uint8_t)) {
+void vpet_sprite_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[], void (*operation)(int, int, uint8_t)) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {
@@ -194,7 +196,7 @@ void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*
 	}
 }
 
-void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void (*operation)(int, int, uint8_t)) {
+void vpet_sprite_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[], void (*operation)(int, int, uint8_t)) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {
@@ -206,7 +208,7 @@ void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void 
 	}
 }
 
-void vpet_sprite_24(int x, int y, int h, int hflip, const uint32_t rows[], void (*operation)(int, int, uint8_t)) {
+void vpet_sprite_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[], void (*operation)(int, int, uint8_t)) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {
@@ -221,7 +223,7 @@ void vpet_sprite_24(int x, int y, int h, int hflip, const uint32_t rows[], void 
 
 // ----------------------------------------------
 
-void vpet_sprite_overwrite_8(int x, int y, int hflip, int h, const uint8_t rows[]) {
+void vpet_sprite_overwrite_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[]) {
 	int shift = (8-(x & 7));
 	unsigned int mask_pixels = ~(255 << shift);
 	x = x_to_buffer_x(x);
@@ -235,7 +237,7 @@ void vpet_sprite_overwrite_8(int x, int y, int hflip, int h, const uint8_t rows[
 	}
 }
 
-void vpet_sprite_overwrite_16(int x, int y, int hflip, int h, const uint16_t rows[]) {
+void vpet_sprite_overwrite_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[]) {
 	int shift = (8-(x & 7));
 	unsigned int mask_pixels = ~(255 << shift);
 	x = x_to_buffer_x(x);
@@ -251,7 +253,7 @@ void vpet_sprite_overwrite_16(int x, int y, int hflip, int h, const uint16_t row
 	}
 }
 
-void vpet_sprite_overwrite_24(int x, int y, int hflip, int h, const uint32_t rows[]) {
+void vpet_sprite_overwrite_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[]) {
 	int shift = (8-(x & 7));
 	unsigned int mask_pixels = ~(255 << shift);
 	x = x_to_buffer_x(x);
@@ -269,7 +271,7 @@ void vpet_sprite_overwrite_24(int x, int y, int hflip, int h, const uint32_t row
 
 // ----------------------------------------------
 
-void vpet_sprite_mask_8(int x, int y, int hflip, int h, const uint8_t rows[], const uint8_t mask_rows[]) {
+void vpet_sprite_mask_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[], const uint8_t mask_rows[]) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {
@@ -283,7 +285,7 @@ void vpet_sprite_mask_8(int x, int y, int hflip, int h, const uint8_t rows[], co
 	}
 }
 
-void vpet_sprite_mask_16(int x, int y, int hflip, int h, const uint16_t rows[], const uint16_t mask_rows[]) {
+void vpet_sprite_mask_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[], const uint16_t mask_rows[]) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {
@@ -299,7 +301,7 @@ void vpet_sprite_mask_16(int x, int y, int hflip, int h, const uint16_t rows[], 
 	}
 }
 
-void vpet_sprite_mask_24(int x, int y, int hflip, int h, const uint32_t rows[], const uint32_t mask_rows[]) {
+void vpet_sprite_mask_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[], const uint32_t mask_rows[]) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
 	for(size_t r=0; r<h; r++) {

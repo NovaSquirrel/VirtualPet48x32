@@ -109,12 +109,12 @@ void vpet_draw_pet_animation() {
 			}
 			if(pet_animation_react_timer) {
 				if(Random(2)) {
-					for(int i=0; i<4; i++) {
-						vpet_sprite_16(i*12, RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 4, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
+					for(int i=0; i<(PET_SCREEN_W/12); i++) {
+						vpet_sprite_16(i*12+(PET_SCREEN_W%12/2), RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 4, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
 					}
 				} else {
-					for(int i=0; i<6; i++) {
-						vpet_sprite_8(i*8, RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 4, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
+					for(int i=0; i<(PET_SCREEN_W/8); i++) {
+						vpet_sprite_8(i*8+(PET_SCREEN_W%8/2), RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 4, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
 					}
 				}
 			}
@@ -125,12 +125,12 @@ void vpet_draw_pet_animation() {
 			vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, KEY_NAME_B " to stop");
 			if(pet_animation_react_timer) {
 				if(Random(2)) {
-					for(int i=0; i<4; i++) {
-						vpet_sprite_16(i*12, RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 8, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
+					for(int i=0; i<(PET_SCREEN_W/12); i++) {
+						vpet_sprite_16(i*12+(PET_SCREEN_W%12/2), RandomMinMax(PET_SCREEN_CENTER_Y - 5 - 8, PET_SCREEN_CENTER_Y - 5 + 4), 0, 10, heart10_art, vpet_or_8_pixels);
 					}
 				} else {
-					for(int i=0; i<6; i++) {
-						vpet_sprite_8(i*8, RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 8, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
+					for(int i=0; i<(PET_SCREEN_W/6); i++) {
+						vpet_sprite_8(i*8+(PET_SCREEN_W%8/2), RandomMinMax(PET_SCREEN_CENTER_Y - 3 - 8, PET_SCREEN_CENTER_Y - 3 + 4), 0, 7, heart7_art, vpet_or_8_pixels);
 					}
 				}
 			}
@@ -150,7 +150,7 @@ void vpet_draw_pet_animation() {
 			break;
 		case STATE_DEFAULT:
 			if(my_pet.poops) {
-				for(int i=0; i<my_pet.poops; i++) {
+				for(unsigned int i=0; i<my_pet.poops; i++) {
 					vpet_sprite_8((i&1) ? 0 : PET_SCREEN_W-7, PET_SCREEN_H-8-((i/2)*8), 0, 7, &poop_art[(pet_animation_timer&1)*7], vpet_or_8_pixels);
 				}
 			}

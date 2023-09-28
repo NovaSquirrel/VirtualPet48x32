@@ -1,25 +1,28 @@
-#ifndef PLATFORMER_HEADER
-#define PLATFORMER_HEADER
+#ifndef VPET_HEADER
+#define PLATFORM_PC
+//#define PLATFORM_PICO
+
+#define VPET_HEADER
 #define NO_STDIO_REDIRECT
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <dirent.h>
 #include <stdarg.h>
+#ifdef PLATFORM_PC
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#endif
 
 // ------------------------------------------------------------
 
 // Pet configuration
 #define PET_SCREEN_W 48
 #define PET_SCREEN_H 32
-#define PET_SCREEN_CENTER_X 24
-#define PET_SCREEN_CENTER_Y 16
+#define PET_SCREEN_CENTER_X (PET_SCREEN_W/2)
+#define PET_SCREEN_CENTER_Y (PET_SCREEN_H/2)
 
 // Full animation
 #define PET_ANIMATION_FULL
@@ -55,15 +58,15 @@ void vpet_or_8_pixels(int x, int y, uint8_t value);
 void vpet_xor_8_pixels(int x, int y, uint8_t value);
 void vpet_and_8_pixels(int x, int y, uint8_t value);
 void vpet_andnot_8_pixels(int x, int y, uint8_t value);
-void vpet_sprite_8(int x, int y, int hflip, int h, const uint8_t rows[], void (*operation)(int, int, uint8_t));
-void vpet_sprite_16(int x, int y, int hflip, int h, const uint16_t rows[], void (*operation)(int, int, uint8_t));
-void vpet_sprite_24(int x, int y, int hflip, int h, const uint32_t rows[], void (*operation)(int, int, uint8_t));
-void vpet_sprite_overwrite_8(int x, int y, int hflip, int h, const uint8_t rows[]);
-void vpet_sprite_overwrite_16(int x, int y, int hflip, int h, const uint16_t rows[]);
-void vpet_sprite_overwrite_24(int x, int y, int hflip, int h, const uint32_t rows[]);
-void vpet_sprite_mask_8(int x, int y, int hflip, int h, const uint8_t rows[], const uint8_t mask_rows[]);
-void vpet_sprite_mask_16(int x, int y, int hflip, int h, const uint16_t rows[], const uint16_t mask_rows[]);
-void vpet_sprite_mask_24(int x, int y, int hflip, int h, const uint32_t rows[], const uint32_t mask_rows[]);
+void vpet_sprite_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[], void (*operation)(int, int, uint8_t));
+void vpet_sprite_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[], void (*operation)(int, int, uint8_t));
+void vpet_sprite_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[], void (*operation)(int, int, uint8_t));
+void vpet_sprite_overwrite_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[]);
+void vpet_sprite_overwrite_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[]);
+void vpet_sprite_overwrite_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[]);
+void vpet_sprite_mask_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[], const uint8_t mask_rows[]);
+void vpet_sprite_mask_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[], const uint16_t mask_rows[]);
+void vpet_sprite_mask_24(int x, int y, int hflip, unsigned int h, const uint32_t rows[], const uint32_t mask_rows[]);
 #define vpet_sprite_xor_8(x, y, hflip, h, rows) vpet_sprite_8(x, y, hflip, h, rows, vpet_xor_8_pixels)
 #define vpet_sprite_xor_16(x, y, hflip, h, rows) vpet_sprite_16(x, y, hflip, h, rows, vpet_xor_8_pixels)
 #define vpet_sprite_xor_24(x, y, hflip, h, rows) vpet_sprite_24(x, y, hflip, h, rows, vpet_xor_8_pixels)
@@ -201,8 +204,8 @@ struct vpet_status {
 
 extern struct vpet_status my_pet;
 
-void add_to_pet_stat(int which_stat, int value);
-void sub_from_pet_stat(int which_stat, int value);
+void add_to_pet_stat(int which_stat, unsigned int value);
+void sub_from_pet_stat(int which_stat, unsigned int value);
 
 // ------------------------------------------------------------
 
@@ -339,6 +342,7 @@ extern struct entity entities[ENTITY_LEN];
 
 // ------------------------------------------------------------
 
+#ifdef PLATFORM_PC
 extern int ScreenWidth, ScreenHeight, ScreenZoom;
 extern SDL_Window *window;
 extern SDL_Renderer *ScreenRenderer;
@@ -355,6 +359,7 @@ void blit(SDL_Texture* SrcBmp, SDL_Renderer* DstBmp, int SourceX, int SourceY, i
 void blitf(SDL_Texture* SrcBmp, SDL_Renderer* DstBmp, int SourceX, int SourceY, int DestX, int DestY, int Width, int Height, SDL_RendererFlip Flip);
 void blitz(SDL_Texture* SrcBmp, SDL_Renderer* DstBmp, int SourceX, int SourceY, int DestX, int DestY, int Width, int Height, int Width2, int Height2);
 void blitfull(SDL_Texture* SrcBmp, SDL_Renderer* DstBmp, int DestX, int DestY);
+#endif
 
 void RandomSeed();
 uint32_t RandomRaw();
@@ -468,3 +473,4 @@ enum food_flags {
 	FOOD_CATEGORY_DRINK   = 0x0700,
 };
 extern const struct food_info food_infos[];
+#endif

@@ -1,14 +1,6 @@
 #include "vpet.h"
 
-void SDL_MessageBox(int Type, const char *Title, SDL_Window *Window, const char *fmt, ...) {
-	va_list argp;
-	va_start(argp, fmt);
-	char Buffer[512];
-	vsprintf(Buffer, fmt, argp);
-	SDL_ShowSimpleMessageBox(Type, Title, Buffer, Window);
-	va_end(argp);
-}
-
+#ifdef PLATFORM_PC
 void strlcpy(char *Destination, const char *Source, int MaxLength) {
 	// MaxLength is directly from sizeof() so it includes the zero
 	int SourceLen = strlen(Source);
@@ -16,6 +8,15 @@ void strlcpy(char *Destination, const char *Source, int MaxLength) {
 		MaxLength = SourceLen + 1;
 	memcpy(Destination, Source, MaxLength-1);
 	Destination[MaxLength-1] = 0;
+}
+
+void SDL_MessageBox(int Type, const char *Title, SDL_Window *Window, const char *fmt, ...) {
+	va_list argp;
+	va_start(argp, fmt);
+	char Buffer[512];
+	vsprintf(Buffer, fmt, argp);
+	SDL_ShowSimpleMessageBox(Type, Title, Buffer, Window);
+	va_end(argp);
 }
 
 SDL_Surface *SDL_LoadImage(const char *FileName, int Flags) {
@@ -76,5 +77,4 @@ void blitfull(SDL_Texture* SrcBmp, SDL_Renderer* DstBmp, int DestX, int DestY) {
 	SDL_Rect Dst = {DestX, DestY};
 	SDL_RenderCopy(DstBmp,	SrcBmp, NULL, &Dst);
 }
-
-
+#endif
