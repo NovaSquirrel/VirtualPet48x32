@@ -100,13 +100,13 @@ int get_buffered_key_new(uint16_t key) {
 }
 
 void vpet_minigame_walk_lr(int bound_l, int bound_r) {
-	if(key_down & KEY_LEFT_PREV) {
+	if(key_down & VPET_KEY_LEFT_PREV) {
 		minigame_pet_x -= COORD_SCALE;
 		if(minigame_pet_x < bound_l*COORD_SCALE)
 			minigame_pet_x = bound_l*COORD_SCALE;
 		minigame_pet_hflip = 0;
 	}
-	if(key_down & KEY_RIGHT_NEXT) {
+	if(key_down & VPET_KEY_RIGHT_NEXT) {
 		minigame_pet_x += COORD_SCALE;
 		if(minigame_pet_x > bound_r*COORD_SCALE)
 			minigame_pet_x = bound_r*COORD_SCALE;
@@ -116,7 +116,7 @@ void vpet_minigame_walk_lr(int bound_l, int bound_r) {
 
 void vpet_minigame_set_frame_for_walk() {
 	minigame_pet_frame = CF_IDLE;
-	if(key_down & (KEY_LEFT | KEY_RIGHT)) {
+	if(key_down & (VPET_KEY_LEFT | VPET_KEY_RIGHT)) {
 		minigame_pet_frame = (enum character_frame)(CF_RUNNING + ((vpet_minigame_ticks/8) & 1));
 	}
 	if(!minigame_pet_on_ground)
@@ -275,7 +275,7 @@ void vpet_tick60fps_minigame() {
 			vpet_minigame_walk_lr(8, PET_SCREEN_W-8);
 
 			if(vpet_apply_gravity(3*16)) {
-				if(key_down & KEY_A)
+				if(key_down & VPET_KEY_A)
 					minigame_pet_vspeed = -(2*256 + 128);
 					//minigame_pet_vspeed = 3*256; //2*256 + 128;
 			}

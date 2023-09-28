@@ -105,7 +105,7 @@ void vpet_draw_pet_animation() {
 			if(my_pet.stats[STAT_CLEAN] < (MAX_STAT - MAX_STAT/32)) {
 				vpet_draw_meter(PET_SCREEN_CENTER_X-(4*5+2)/2, PET_SCREEN_H-5, 4*5+2, 5, my_pet.stats[STAT_CLEAN], MAX_STAT);
 			} else {
-				vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, KEY_NAME_B " to stop");
+				vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, PET_KEY_NAME_B " to stop");
 			}
 			if(pet_animation_react_timer) {
 				if(Random(2)) {
@@ -122,7 +122,7 @@ void vpet_draw_pet_animation() {
 			break;
 
 		case STATE_PETTING:
-			vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, KEY_NAME_B " to stop");
+			vpet_draw_text(PET_SCREEN_CENTER_X - 9 * 2, PET_SCREEN_H-6, PET_KEY_NAME_B " to stop");
 			if(pet_animation_react_timer) {
 				if(Random(2)) {
 					for(int i=0; i<(PET_SCREEN_W/12); i++) {

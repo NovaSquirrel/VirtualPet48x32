@@ -31,9 +31,9 @@
 // Minimal animation
 #define PET_ANIMATION_EPAPER
 
-#define KEY_NAME_A "A"
-#define KEY_NAME_B "B"
-#define KEY_NAME_C "C"
+#define PET_KEY_NAME_A "A"
+#define PET_KEY_NAME_B "B"
+#define PET_KEY_NAME_C "C"
 
 // Game Boy
 #define KEY_LAYOUT_DPAD_AB
@@ -262,26 +262,26 @@ void vpet_draw_pet_animation_and_clear();
 // ------------------------------------------------------------
 
 enum KeyCode {
-  KEY_LEFT  = 0x0001,
-  KEY_RIGHT = 0x0002,
-  KEY_UP    = 0x0004,
-  KEY_DOWN  = 0x0008,
-  KEY_A     = 0x0010, // Confirm
-  KEY_B     = 0x0020, // Cancel
-  KEY_C     = 0x0040,
+  VPET_KEY_LEFT  = 0x0001,
+  VPET_KEY_RIGHT = 0x0002,
+  VPET_KEY_UP    = 0x0004,
+  VPET_KEY_DOWN  = 0x0008,
+  VPET_KEY_A     = 0x0010, // Confirm
+  VPET_KEY_B     = 0x0020, // Cancel
+  VPET_KEY_C     = 0x0040,
 
-  KEY_PREV  = 0x0100,
-  KEY_NEXT  = 0x0200,
+  VPET_KEY_PREV  = 0x0100,
+  VPET_KEY_NEXT  = 0x0200,
 
-  KEY_RESET = 0x8000,
+  VPET_KEY_RESET = 0x8000,
 };
-#define KEY_LEFT_PREV    (KEY_LEFT|KEY_PREV)
-#define KEY_RIGHT_NEXT   (KEY_RIGHT|KEY_NEXT)
-#define KEY_UP_PREV      (KEY_UP|KEY_PREV)
-#define KEY_DOWN_NEXT    (KEY_DOWN|KEY_NEXT)
-#define KEY_LEFT_RIGHT_PREV_NEXT (KEY_LEFT|KEY_RIGHT|KEY_PREV|KEY_NEXT)
-#define KEY_UP_DOWN_PREV_NEXT (KEY_UP|KEY_DOWN|KEY_PREV|KEY_NEXT)
-#define KEY_ANY_DIRECTION (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN|KEY_PREV|KEY_NEXT)
+#define VPET_KEY_LEFT_PREV    (VPET_KEY_LEFT|VPET_KEY_PREV)
+#define VPET_KEY_RIGHT_NEXT   (VPET_KEY_RIGHT|VPET_KEY_NEXT)
+#define VPET_KEY_UP_PREV      (VPET_KEY_UP|VPET_KEY_PREV)
+#define VPET_KEY_DOWN_NEXT    (VPET_KEY_DOWN|VPET_KEY_NEXT)
+#define VPET_KEY_LEFT_RIGHT_PREV_NEXT (VPET_KEY_LEFT|VPET_KEY_RIGHT|VPET_KEY_PREV|VPET_KEY_NEXT)
+#define VPET_KEY_UP_DOWN_PREV_NEXT (VPET_KEY_UP|VPET_KEY_DOWN|VPET_KEY_PREV|VPET_KEY_NEXT)
+#define VPET_KEY_ANY_DIRECTION (VPET_KEY_LEFT|VPET_KEY_RIGHT|VPET_KEY_UP|VPET_KEY_DOWN|VPET_KEY_PREV|VPET_KEY_NEXT)
 extern uint16_t key_down, key_new, key_last, key_new_or_repeat;
 
 // ------------------------------------------------------------
