@@ -16,6 +16,13 @@
 // ------------------------------------------------------------
 
 // Pet configuration
+#ifndef PET_SCREEN_W
+#define PET_SCREEN_W 48
+#endif
+#ifndef PET_SCREEN_H
+#define PET_SCREEN_H 32
+#endif
+
 #define PET_SCREEN_CENTER_X (PET_SCREEN_W/2)
 #define PET_SCREEN_CENTER_Y (PET_SCREEN_H/2)
 

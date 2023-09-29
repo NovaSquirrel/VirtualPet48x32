@@ -9,7 +9,7 @@ srcdir := src
 objlisto := $(foreach o,$(objlist),$(objdir)/$(o).o)
  
 ifeq ($(OS),Windows_NT)
-  CFLAGS := -Wall -O2 -std=gnu99 -ggdb -DPLATFORM_PC -DPET_SCREEN_W=48 -DPET_SCREEN_H=32
+  CFLAGS := -Wall -O2 -std=gnu99 -ggdb -DPLATFORM_PC
   LDLIBS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
   LDFLAGS := -Wl,-subsystem,windows
 else
