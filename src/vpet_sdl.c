@@ -19,6 +19,7 @@
 #include "vpet.h"
 #define FRAME_LENGTH (16.0+2.0/3.0)
 
+#ifdef PLATFORM_PC
 int ScreenWidth, ScreenHeight, ScreenZoom = 6;
 
 SDL_Window *window = NULL;
@@ -102,15 +103,15 @@ int main(int argc, char *argv[]) {
 			key_new = key_down & (~key_last);
 			key_new_or_repeat = key_new;
 
-			if(key_new & KEY_RESET)
+			if(key_new & VPET_KEY_RESET)
 				init_game();
 
-			if((key_down&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ==
-			   (key_last&(KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN)) ) {
+			if((key_down&(VPET_KEY_LEFT|VPET_KEY_RIGHT|VPET_KEY_UP|VPET_KEY_DOWN)) ==
+			   (key_last&(VPET_KEY_LEFT|VPET_KEY_RIGHT|VPET_KEY_UP|VPET_KEY_DOWN)) ) {
 				key_repeat++;
 				if(key_repeat > 15) {
 					key_repeat = 12;
-					key_new_or_repeat |= key_down & (KEY_LEFT|KEY_RIGHT|KEY_UP|KEY_DOWN);
+					key_new_or_repeat |= key_down & (VPET_KEY_LEFT|VPET_KEY_RIGHT|VPET_KEY_UP|VPET_KEY_DOWN);
 				}
 			} else {
 				key_repeat = 0;
@@ -128,3 +129,4 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+#endif

@@ -1,9 +1,6 @@
 #ifndef VPET_HEADER
-#define PLATFORM_PC
-//#define PLATFORM_PICO
-
 #define VPET_HEADER
-#define NO_STDIO_REDIRECT
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,30 +16,32 @@
 // ------------------------------------------------------------
 
 // Pet configuration
-#define PET_SCREEN_W 48
-#define PET_SCREEN_H 32
 #define PET_SCREEN_CENTER_X (PET_SCREEN_W/2)
 #define PET_SCREEN_CENTER_Y (PET_SCREEN_H/2)
 
-// Full animation
-#define PET_ANIMATION_FULL
-// Animation for LCD devices
-#define PET_ANIMATION_PLUS
-// Minimal animation
-#define PET_ANIMATION_EPAPER
-
-#define PET_KEY_NAME_A "A"
-#define PET_KEY_NAME_B "B"
-#define PET_KEY_NAME_C "C"
-
-// Game Boy
-#define KEY_LAYOUT_DPAD_AB
-
-// Watchy
-//#define KEY_LAYOUT_QUAD
-
-// Pico GFX Pack
-//#define KEY_LAYOUT_HORIZ_5
+#ifdef PLATFORM_PICO
+	#define PET_KEY_NAME_A "E"
+	#define PET_KEY_NAME_B "D"
+	#define PET_KEY_NAME_C "C"
+	#define KEY_LAYOUT_HORIZ_5
+	#ifdef SAVE_BATTERY
+		#define PET_ANIMATION_PLUS
+	#else
+		#define PET_ANIMATION_FULL
+	#endif
+#elif defined(PLATFORM_WATCHY)
+	#define PET_KEY_NAME_A "A"
+	#define PET_KEY_NAME_B "B"
+	#define PET_KEY_NAME_C "C"
+	#define KEY_LAYOUT_QUAD
+	#define PET_ANIMATION_EPAPER
+#else
+	#define PET_KEY_NAME_A "A"
+	#define PET_KEY_NAME_B "B"
+	#define PET_KEY_NAME_C "C"
+	#define KEY_LAYOUT_DPAD_AB
+	#define PET_ANIMATION_FULL
+#endif
 
 // ------------------------------------------------------------
 
