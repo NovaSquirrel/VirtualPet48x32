@@ -276,8 +276,8 @@ enum KeyCode {
   VPET_KEY_B     = 0x0020, // Cancel
   VPET_KEY_C     = 0x0040,
 
-  VPET_KEY_PREV  = 0x0100,
-  VPET_KEY_NEXT  = 0x0200,
+  VPET_KEY_PREV  = 0x0080,
+  VPET_KEY_NEXT  = 0x0100,
 
   VPET_KEY_RESET = 0x8000,
 };

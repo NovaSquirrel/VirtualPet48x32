@@ -299,7 +299,16 @@ void back_out_of_menu(enum game_state new_state, int new_cursor) {
 void vpet_switch_state(enum game_state new_state) {
 	switch(new_state) {
 		case STATE_BRUSHING:
+			#ifdef KEY_LAYOUT_HORIZ_5
+			switch(Random(4)) {
+				case 0: state_variable = 4; break;
+				case 1: state_variable = 6; break;
+				case 2: state_variable = 7; break;
+				case 3: state_variable = 8; break;
+			}
+			#else
 			state_variable = Random(5);
+			#endif
 			break;
 		case STATE_MINIGAME:;
 			void vpet_init_minigame();
@@ -493,13 +502,26 @@ void vpet_tick_button_press() {
 			break;
 
 		case STATE_BRUSHING:
+			#ifdef KEY_LAYOUT_HORIZ_5
+			if(key_new & (VPET_KEY_A|VPET_KEY_C|VPET_KEY_PREV|VPET_KEY_NEXT)) {
+			#else
 			if(key_new & (VPET_KEY_A|VPET_KEY_LEFT|VPET_KEY_DOWN|VPET_KEY_UP|VPET_KEY_RIGHT)) {
+			#endif
 				if(key_new & (1 << state_variable)) {
 					add_to_pet_stat(STAT_HAPPY, MAX_STAT/32);
 					add_to_pet_stat(STAT_CLEAN, MAX_STAT/16);
 					void vpet_animation_press_brushing();
 					vpet_animation_press_brushing();
+					#ifdef KEY_LAYOUT_HORIZ_5
+					switch(Random(4)) {
+						case 0: state_variable = 4; break;
+						case 1: state_variable = 6; break;
+						case 2: state_variable = 7; break;
+						case 3: state_variable = 8; break;			
+					}
+					#else
 					state_variable = Random(5);
+					#endif
 					vpet_draw_pet_animation_and_clear();
 				}
 			}

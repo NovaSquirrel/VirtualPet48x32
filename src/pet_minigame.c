@@ -116,7 +116,7 @@ void vpet_minigame_walk_lr(int bound_l, int bound_r) {
 
 void vpet_minigame_set_frame_for_walk() {
 	minigame_pet_frame = CF_IDLE;
-	if(key_down & (VPET_KEY_LEFT | VPET_KEY_RIGHT)) {
+	if(key_down & VPET_KEY_LEFT_RIGHT_PREV_NEXT) {
 		minigame_pet_frame = (enum character_frame)(CF_RUNNING + ((vpet_minigame_ticks/8) & 1));
 	}
 	if(!minigame_pet_on_ground)

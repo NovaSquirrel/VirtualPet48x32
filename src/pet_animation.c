@@ -118,7 +118,18 @@ void vpet_draw_pet_animation() {
 					}
 				}
 			}
+			#ifdef KEY_LAYOUT_HORIZ_5
+			int button_to_show = 0;
+			switch(state_variable) {
+				case 4: button_to_show = 8; break; // A ---> E
+				case 6: button_to_show = 6; break; // C ---> C
+				case 7: button_to_show = 0; break; // Prev --> Left
+				case 8: button_to_show = 1; break; // Next --> Right
+			}
+			vpet_sprite_8(PET_SCREEN_CENTER_X -8/2, 0, 0, 8, &button_icon8_art[button_to_show*8], vpet_or_8_pixels);
+			#else
 			vpet_sprite_8(PET_SCREEN_CENTER_X -8/2, 0, 0, 8, &button_icon8_art[state_variable*8], vpet_or_8_pixels);
+			#endif
 			break;
 
 		case STATE_PETTING:
