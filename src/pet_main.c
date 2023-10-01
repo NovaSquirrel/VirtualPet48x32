@@ -461,6 +461,19 @@ void vpet_tick_button_press() {
 			move_through_menu(4, STATE_MAIN_MENU, 6);
 			if(key_new_or_repeat & VPET_KEY_UP_DOWN_PREV_NEXT)
 				vpet_refresh_screen();
+
+			// Temporary: Let you switch pet species here
+			if(key_new & VPET_KEY_A) {
+				my_pet.profile.species++;
+				if(my_pet.profile.species == CHARACTER_COUNT)
+					my_pet.profile.species = CHARACTER_MIMI;
+				switch(my_pet.profile.species) {
+					case CHARACTER_MIMI:    strcpy(my_pet.profile.name, "Mimitchi"); break;
+					case CHARACTER_PYONKO:  strcpy(my_pet.profile.name, "Pyonkotchi"); break;
+					case CHARACTER_TERRIER: strcpy(my_pet.profile.name, "Terriermon"); break;
+					case CHARACTER_LOP:     strcpy(my_pet.profile.name, "Lopmon"); break;
+				}
+			}
 			break;
 
 		case STATE_WHICH_FOOD:
@@ -517,7 +530,7 @@ void vpet_tick_button_press() {
 						case 0: state_variable = 4; break;
 						case 1: state_variable = 6; break;
 						case 2: state_variable = 7; break;
-						case 3: state_variable = 8; break;			
+						case 3: state_variable = 8; break;
 					}
 					#else
 					state_variable = Random(5);

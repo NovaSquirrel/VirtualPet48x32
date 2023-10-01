@@ -127,6 +127,7 @@ enum character_id {
 	CHARACTER_PYONKO,
 	CHARACTER_TERRIER,
 	CHARACTER_LOP,
+	CHARACTER_COUNT,
 };
 
 void vpet_draw_pet(int x, int y, int hflip, enum character_id character, enum character_frame frame);
