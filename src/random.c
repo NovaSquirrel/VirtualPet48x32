@@ -4,19 +4,19 @@
 #ifdef PLATFORM_PICO
 
 void RandomSeed() {
-	srand(1337);
+	srandom(1337);
 }
 
 uint32_t RandomRaw() {
-	return rand();
+	return random();
 }
 
 uint32_t Random(uint32_t Bound) {
-	return rand() % Bound;
+	return random() % Bound;
 }
 
 uint32_t RandomMinMax(uint32_t Min, uint32_t Max) {
-	return rand() % (Max-Min)+Min;
+	return random() % (Max-Min)+Min;
 }
 #else
 
