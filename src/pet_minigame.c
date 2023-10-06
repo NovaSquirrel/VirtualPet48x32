@@ -17,13 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "vpet.h"
-
+#include "minigame_sprites.h"
 #define COORD_BOTTOM_OF_SCREEN ((PET_SCREEN_H-1) * COORD_SCALE)
 
 // .-----------------------------------------------------------------
 // | Import
 // '-----------------------------------------------------------------
 extern const uint8_t heading_ball_art[];
+extern const uint8_t minigame_8x8_art[];
 
 // .-----------------------------------------------------------------
 // | Enums
@@ -49,8 +50,9 @@ enum minigame_id {
 	MINIGAME_BOWLING,
 	MINIGAME_OSUMESU, // Flag game
 	MINIGAME_BUS_DRIVING, // From v4
+	MINIGAME_FROG_FLAP, // Like from WarioWare
 };
-enum minigame_id which_minigame = MINIGAME_HEADING;
+enum minigame_id which_minigame = MINIGAME_FROG_FLAP;
 
 // .-----------------------------------------------------------------
 // | Variables
@@ -65,6 +67,11 @@ union {
 	struct {
 		int a;
 	} air_grind;
+
+	struct {
+		int distance;
+		int distance_until_platform;
+	} frogflap;
 
 	struct {
 	} heading;
@@ -146,6 +153,11 @@ int entity_touching_pet(int i) {
 	       (abs(entities[i].y - minigame_pet_y) * 2 < ((entities[i].collide_height + 14)*COORD_SCALE) );
 }
 
+int entity_touching_player_8x8(int i) {
+	return (abs(entities[i].x - minigame_pet_x) * 2 < ((entities[i].collide_width + 8)*COORD_SCALE) ) &&
+	       (abs(entities[i].y - minigame_pet_y) * 2 < ((entities[i].collide_height + 8)*COORD_SCALE) );
+}
+
 void vpet_draw_entities(int over) {
 	static void (*const operations[3])(int, int, uint8_t) = {vpet_xor_8_pixels, vpet_or_8_pixels, vpet_andnot_8_pixels};
 
@@ -177,18 +189,59 @@ void vpet_draw_entities(int over) {
 	}
 }
 
+void vpet_minigame_draw_8x8_player(enum minigame_8x8_art frame) {
+	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x);
+	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y);
+	if(minigame_pet_draw_y < 0) {
+		minigame_pet_draw_y = 7;
+		frame = MG8_ARROW_U;
+	}
+	vpet_sprite_8(minigame_pet_draw_x - 8/2, minigame_pet_draw_y - 7, 0, 8, &minigame_8x8_art[frame*8], vpet_or_8_pixels);
+}
+
 void vpet_minigame_draw_pet() {
 	vpet_draw_entities(0);
 
-//	int minigame_pet_draw_height = game_coordinate_to_screen(minigame_pet_height);
 	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x);
 	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y);
-
 	vpet_draw_pet(minigame_pet_draw_x-16/2, minigame_pet_draw_y-15, minigame_pet_hflip,  my_pet.profile.species, minigame_pet_frame);
-//	if(minigame_pet_draw_height) {
-//		vpet_hline_or(minigame_pet_draw_x-4, minigame_pet_draw_y, 8);
-//	}
+
 	vpet_draw_entities(1);
+}
+
+int minigame_find_free_entity() {
+	for(int slot=0; slot<ENTITY_LEN; slot++)
+		if(entities[slot].type == 0) {
+			memset(&entities[slot], 0, sizeof(entities[slot]));
+			return slot;
+		}
+	return -1;
+}
+
+int minigame_create_entity(int type, int x, int y, int var1, int var2, int var3, int var4) {
+	int slot = minigame_find_free_entity();
+	if(slot == -1)
+		return -1;
+	entities[slot].type = type;
+	entities[slot].x = x;
+	entities[slot].y = y;
+	entities[slot].var[0] = var1;
+	entities[slot].var[1] = var2;
+	entities[slot].var[2] = var3;
+	entities[slot].var[3] = var4;
+	return slot;
+}
+
+int minigame_create_entity_8x8(int type, int x, int y, int var1, int var2, int var3, int var4, enum minigame_8x8_art frame, int collide_height) {
+	int slot = minigame_create_entity(type, x, y, var1, var2, var3, var4);
+	if(slot == -1)
+		return -1;
+	entities[slot].frame.art_8    = &minigame_8x8_art[frame*8];
+	entities[slot].draw_flags     = ENTITY_DRAW_8 | ENTITY_DRAW_BLACK;
+	entities[slot].art_height     = 8;
+	entities[slot].collide_width  = 8;
+	entities[slot].collide_height = collide_height;
+	return slot;
 }
 
 // .-----------------------------------------------------------------
@@ -200,10 +253,19 @@ void vpet_init_minigame() {
 	memset(&minigame_vars, 0, sizeof(minigame_vars));
 	memset(entities, 0, sizeof(entities));
 
+	// Set defaults
 	minigame_pet_hflip = 0;
 	minigame_pet_vspeed = 0;
+	for(int i=0; i<ENTITY_LEN; i++) {
+		entities[i].art_height = 8;
+		entities[i].draw_flags = ENTITY_DRAW_8 | ENTITY_DRAW_BLACK;
+		entities[i].collide_width  = 8;
+		entities[i].collide_height = 8;
+	}
 
 	switch(which_minigame) {
+
+		// --------------------------------------------------------------------
 		case MINIGAME_HEADING:
 			minigame_pet_x = PET_SCREEN_CENTER_X * COORD_SCALE;
 			minigame_pet_y = COORD_BOTTOM_OF_SCREEN;
@@ -212,12 +274,21 @@ void vpet_init_minigame() {
 				entities[i].type = 1;
 				entities[i].x = (i+1) * 8 * COORD_SCALE;
 				entities[i].y = -2 * COORD_SCALE;
-				entities[i].art_height = 8;
-				entities[i].draw_flags = ENTITY_DRAW_8 | ENTITY_DRAW_BLACK;
 				entities[i].frame.art_8 = heading_ball_art;
 				entities[i].timer = Random(300);
 			}
 			break;
+
+		// --------------------------------------------------------------------
+		case MINIGAME_FROG_FLAP:
+			minigame_pet_x = 8 * COORD_SCALE;
+			minigame_pet_y = 0;
+
+			minigame_create_entity_8x8(1, 8 * COORD_SCALE,                        COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
+			minigame_create_entity_8x8(1, PET_SCREEN_CENTER_X * COORD_SCALE,      COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
+			minigame_create_entity_8x8(1, (PET_SCREEN_CENTER_X+16) * COORD_SCALE, COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
+			break;
+
 		default:
 			break;
 	}
@@ -243,6 +314,43 @@ void vpet_tick60fps_minigame() {
 
 	// Do each minigame's logic
 	switch(which_minigame) {
+		// --------------------------------------------------------------------
+		case MINIGAME_FROG_FLAP:
+			vpet_minigame_walk_lr(4, PET_SCREEN_W-4);
+			int scroll_left_by = 0;
+			if(minigame_pet_x > PET_SCREEN_CENTER_X * COORD_SCALE) {
+				scroll_left_by = minigame_pet_x - PET_SCREEN_CENTER_X * COORD_SCALE;
+				minigame_pet_x = PET_SCREEN_CENTER_X * COORD_SCALE;
+				minigame_vars.frogflap.distance += scroll_left_by;
+				minigame_vars.frogflap.distance_until_platform -= scroll_left_by;
+				if(minigame_vars.frogflap.distance_until_platform < 0) {
+					minigame_vars.frogflap.distance_until_platform = RandomMinMax(10 * COORD_SCALE, 40 * COORD_SCALE);
+					minigame_create_entity_8x8(1, PET_SCREEN_W * COORD_SCALE, RandomMinMax(COORD_BOTTOM_OF_SCREEN-20*COORD_SCALE, COORD_BOTTOM_OF_SCREEN), 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
+				}
+			}
+
+			for(int i=0; i<ENTITY_LEN; i++) {
+				if(entities[i].type) {
+					entities[i].x -= scroll_left_by;
+					if(entities[i].x < (-8 * COORD_SCALE))
+						entities[i].type = 0;
+					if(entity_touching_player_8x8(i) && entities[i].y > minigame_pet_y && minigame_pet_vspeed > 0) {
+						entities[i].type = 0;
+						minigame_pet_vspeed = -(1*256 + 64);
+					}
+				}
+			}
+
+			if(vpet_apply_gravity(8)) {
+				vpet_switch_state(STATE_DEFAULT);
+				return;
+			}
+
+			vpet_draw_entities(0);
+			vpet_minigame_draw_8x8_player(MG8_SMILE2);
+			break;
+
+		// --------------------------------------------------------------------
 		case MINIGAME_HEADING:
 			for(int i=0; i<ENTITY_LEN; i++) {
 				if(entities[i].type) {

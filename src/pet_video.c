@@ -196,6 +196,17 @@ void vpet_sprite_8(int x, int y, int hflip, unsigned int h, const uint8_t rows[]
 	}
 }
 
+void vpet_sprite_8_vflip(int x, int y, int hflip, unsigned int h, const uint8_t rows[], void (*operation)(int, int, uint8_t)) {
+	int shift = (8-(x & 7));
+	x = x_to_buffer_x(x);
+	for(size_t r=0; r<h; r++) {
+		unsigned int pixels = (hflip ? reverse8(rows[h-r-1]) : rows[h-r-1]) << shift;
+		operation(x,   y, (pixels >> 8) & 0xff);
+		operation(x+1, y, (pixels     ) & 0xff);
+		y++;
+	}
+}
+
 void vpet_sprite_16(int x, int y, int hflip, unsigned int h, const uint16_t rows[], void (*operation)(int, int, uint8_t)) {
 	int shift = (8-(x & 7));
 	x = x_to_buffer_x(x);
