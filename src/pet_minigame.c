@@ -19,12 +19,15 @@
 #include "vpet.h"
 #include "minigame_sprites.h"
 #define COORD_BOTTOM_OF_SCREEN ((PET_SCREEN_H-1) * COORD_SCALE)
+#define PLAYFIELD_W 16
+#define PLAYFIELD_H 16
 
 // .-----------------------------------------------------------------
 // | Import
 // '-----------------------------------------------------------------
 extern const uint8_t heading_ball_art[];
 extern const uint8_t minigame_8x8_art[];
+extern const uint8_t minigame_6x6_art[];
 
 // .-----------------------------------------------------------------
 // | Enums
@@ -51,8 +54,9 @@ enum minigame_id {
 	MINIGAME_OSUMESU, // Flag game
 	MINIGAME_BUS_DRIVING, // From v4
 	MINIGAME_FROG_FLAP, // Like from WarioWare
+	MINIGAME_CLIMB_TOWER,
 };
-enum minigame_id which_minigame = MINIGAME_FROG_FLAP;
+enum minigame_id which_minigame = MINIGAME_CLIMB_TOWER;
 
 // .-----------------------------------------------------------------
 // | Variables
@@ -62,6 +66,9 @@ unsigned int vpet_minigame_ticks;
 
 // Generic state
 struct entity entities[ENTITY_LEN];
+uint8_t minigame_playfield[PLAYFIELD_W][PLAYFIELD_H];
+int minigame_scroll_x, minigame_scroll_y;
+int minigame_coord_scroll_x, minigame_coord_scroll_y;
 
 union {
 	struct {
@@ -75,6 +82,9 @@ union {
 
 	struct {
 	} heading;
+
+	struct {
+	} climb_tower;
 } minigame_vars;
 
 // Reusable animation variables
@@ -169,8 +179,8 @@ void vpet_draw_entities(int over) {
 
 		int no_centering = entities[i].draw_flags & ENTITY_NO_CENTERING;
 		void (*operation_pointer)(int, int, uint8_t) = operations[(entities[i].draw_flags & ENTITY_DRAW_COLOR) >> 2];
-		int entity_draw_x = game_coordinate_to_screen(entities[i].x);
-		int entity_draw_y = game_coordinate_to_screen(entities[i].y);
+		int entity_draw_x = game_coordinate_to_screen(entities[i].x) - minigame_scroll_x;
+		int entity_draw_y = game_coordinate_to_screen(entities[i].y) - minigame_scroll_y;
 
 		switch(entities[i].draw_flags & ENTITY_DRAW_SIZE) {
 			case ENTITY_DRAW_8:
@@ -190,8 +200,8 @@ void vpet_draw_entities(int over) {
 }
 
 void vpet_minigame_draw_8x8_player(enum minigame_8x8_art frame) {
-	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x);
-	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y);
+	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x) - minigame_scroll_x;
+	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y) - minigame_scroll_y;
 	if(minigame_pet_draw_y < 0) {
 		minigame_pet_draw_y = 7;
 		frame = MG8_ARROW_U;
@@ -202,8 +212,8 @@ void vpet_minigame_draw_8x8_player(enum minigame_8x8_art frame) {
 void vpet_minigame_draw_pet() {
 	vpet_draw_entities(0);
 
-	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x);
-	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y);
+	int minigame_pet_draw_x = game_coordinate_to_screen(minigame_pet_x) - minigame_scroll_x;
+	int minigame_pet_draw_y = game_coordinate_to_screen(minigame_pet_y) - minigame_scroll_y;
 	vpet_draw_pet(minigame_pet_draw_x-16/2, minigame_pet_draw_y-15, minigame_pet_hflip,  my_pet.profile.species, minigame_pet_frame);
 
 	vpet_draw_entities(1);
@@ -244,6 +254,54 @@ int minigame_create_entity_8x8(int type, int x, int y, int var1, int var2, int v
 	return slot;
 }
 
+void minigame_draw_playfield(int tile_width, int tile_height, const uint8_t tiles_art[]) {
+	int screen_tiles_right = PET_SCREEN_W / tile_width;
+	int screen_tiles_down  = PET_SCREEN_H / tile_height;
+
+	int camera_offset_x = minigame_scroll_x % tile_width;
+	int camera_offset_y = minigame_scroll_y % tile_height;
+	int camera_tile_x   = minigame_scroll_x / tile_width;
+	int camera_tile_y   = minigame_scroll_y / tile_height;
+
+	for(int y=0; y<=screen_tiles_down; y++) {
+		for(int x=0; x<=screen_tiles_right; x++) {
+			int real_x = camera_tile_x + x;
+			int real_y = camera_tile_y + y;
+			if(real_x < 0 || real_x >= PLAYFIELD_W || real_y < 0 || real_y >= PLAYFIELD_H)
+				continue;
+			vpet_sprite_8(x * tile_width - camera_offset_x, y * tile_height - camera_offset_y, 0, tile_height, &tiles_art[minigame_playfield[real_x][real_y]*tile_height], vpet_or_8_pixels);
+		}
+	}
+}
+
+void camera_slide_to(int target_x, int target_y) {
+	int difference_x = target_x - minigame_coord_scroll_x;
+	int difference_y = target_y - minigame_coord_scroll_y;
+	minigame_coord_scroll_x += difference_x / 4;
+	minigame_coord_scroll_y += difference_y / 4;
+}
+
+int mg6_solid_on_top(enum minigame_6x6_art tile) {
+	return tile != 0;
+}
+int mg6_solid_on_bottom(enum minigame_6x6_art tile) {
+	return tile != 0;
+}
+int mg6_solid_on_left(enum minigame_6x6_art tile) {
+	return tile != 0;
+}
+int mg6_solid_on_right(enum minigame_6x6_art tile) {
+	return tile != 0;
+}
+
+int mg6_playfield_get(int x, int y) {
+	x = game_coordinate_to_screen(x) / 6;
+	y = game_coordinate_to_screen(y) / 6;
+	if(x < 0 || x >= PLAYFIELD_W || y < 0 || y >= PLAYFIELD_H)
+		return 0;
+	return minigame_playfield[x][y];
+}
+
 // .-----------------------------------------------------------------
 // | Init
 // '-----------------------------------------------------------------
@@ -252,6 +310,27 @@ void vpet_init_minigame() {
 	vpet_minigame_ticks = 0;
 	memset(&minigame_vars, 0, sizeof(minigame_vars));
 	memset(entities, 0, sizeof(entities));
+	memset(minigame_playfield, 0, sizeof(minigame_playfield));
+	minigame_scroll_x = 0;
+	minigame_scroll_y = 0;
+	minigame_coord_scroll_x = 0;
+	minigame_coord_scroll_y = 0;
+
+	minigame_playfield[0][0] = MG6_CHECKER_BLOCK;
+	minigame_playfield[1][0] = MG6_CHECKER_BLOCK;
+	minigame_playfield[1][1] = MG6_CHECKER_BLOCK;
+	minigame_playfield[2][1] = MG6_CHECKER_BLOCK;
+	minigame_playfield[2][3] = MG6_CHECKER_BLOCK;
+
+	minigame_playfield[0][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[1][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[2][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[3][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[4][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[5][15] = MG6_CHECKER_BLOCK;
+	minigame_playfield[4][14] = MG6_CHECKER_BLOCK;
+	minigame_playfield[5][14] = MG6_CHECKER_BLOCK;
+	minigame_playfield[5][13] = MG6_CHECKER_BLOCK;
 
 	// Set defaults
 	minigame_pet_hflip = 0;
@@ -287,6 +366,12 @@ void vpet_init_minigame() {
 			minigame_create_entity_8x8(1, 8 * COORD_SCALE,                        COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
 			minigame_create_entity_8x8(1, PET_SCREEN_CENTER_X * COORD_SCALE,      COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
 			minigame_create_entity_8x8(1, (PET_SCREEN_CENTER_X+16) * COORD_SCALE, COORD_BOTTOM_OF_SCREEN-8*COORD_SCALE, 0, 0, 0, 0, MG8_CLOUD_PLATFORM, 4);
+			break;
+
+		// --------------------------------------------------------------------
+		case MINIGAME_CLIMB_TOWER:
+			minigame_pet_x = PET_SCREEN_CENTER_X * COORD_SCALE;
+			minigame_pet_y = COORD_BOTTOM_OF_SCREEN;
 			break;
 
 		default:
@@ -393,6 +478,39 @@ void vpet_tick60fps_minigame() {
 			if(!minigame_pet_on_ground)
 				vpet_hline_or(game_coordinate_to_screen(minigame_pet_x)-4, PET_SCREEN_H-1, 8);
 			break;
+
+		// --------------------------------------------------------------------
+		case MINIGAME_CLIMB_TOWER:
+			vpet_minigame_walk_lr(8, PET_SCREEN_W-8);
+
+			// Gravity
+			minigame_pet_vspeed += 1*16;
+			minigame_pet_y += minigame_pet_vspeed;
+			minigame_pet_on_ground = 0;
+
+			// Standing on stuff?
+			if(mg6_solid_on_top(mg6_playfield_get(minigame_pet_x - 2*COORD_SCALE, minigame_pet_y + COORD_SCALE)) || mg6_solid_on_top(mg6_playfield_get(minigame_pet_x - 1*COORD_SCALE, minigame_pet_y + COORD_SCALE))) {
+				minigame_pet_vspeed = 0;
+				minigame_pet_y += COORD_SCALE;
+				minigame_pet_y -= minigame_pet_y % (6 * COORD_SCALE);
+				minigame_pet_y -= COORD_SCALE;
+				minigame_pet_on_ground = 1;
+			}
+
+			if(minigame_pet_on_ground && (key_down & VPET_KEY_A)) {
+				minigame_pet_vspeed = -(256 + 64);
+			}
+
+			vpet_minigame_set_frame_for_walk();
+
+			camera_slide_to(minigame_pet_x - (PET_SCREEN_W/2 * COORD_SCALE), minigame_pet_y - (PET_SCREEN_H/2 * COORD_SCALE));
+			minigame_scroll_x = game_coordinate_to_screen(minigame_coord_scroll_x);
+			minigame_scroll_y = game_coordinate_to_screen(minigame_coord_scroll_y);
+
+			minigame_draw_playfield(6, 6, minigame_6x6_art);
+			vpet_minigame_draw_pet();
+			break;
+
 		default:
 			break;
 	}
